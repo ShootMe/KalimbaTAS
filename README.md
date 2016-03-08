@@ -19,9 +19,8 @@ Otherwise the program will record a new file there in it's place.
 	* Left Trigger + Right Trigger + DPad Down
 4. To move to the next checkpoint
 	* Left Trigger + Right Trigger + DPad Right
-5. To move to the next checkpoint
+5. To move to the previous checkpoint
 	* Left Trigger + Right Trigger + DPad Left
-
 6. While playing back:
 	* To frame step forward one frame - DPad Up
 	* While frame stepping hold Right Analog Stick to the right to frame step continuously
