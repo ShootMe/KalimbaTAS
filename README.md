@@ -3,8 +3,9 @@ Tool Assisted Modification for Kalimba
 
 Open Kalimba in your Steam directory (usually C:\Program Files (x86)\Steam\steamapps\common\Kalimba\)
 
-Setup:
-	Copy Assembly-CSharp.dll and KalimbaTAS.dll to Kalimba\Kalimba_Data\Managed\ from the above directory.
+### Setup
+	Copy Assembly-CSharp.dll and KalimbaTAS.dll to (Kalimba\Kalimba_Data\Managed\) from the above directory.
+	
 	Make sure to backup the original Assembly-CSharp.dll before hand.
 
 If you are going to playback a TAS file that is already created copy the file to (C:\Program Files (x86)\Steam\steamapps\common\Kalimba\) and make sure it is named 'Kalimba.tas'
