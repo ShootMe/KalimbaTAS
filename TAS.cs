@@ -83,7 +83,7 @@ namespace KalimbaTAS {
 					TotemGamePadPlugin.GetGamepadState(0, out gamepadState);
 
 					CheckControls(ref gamepadState);
-					bool triggerReleased = gamepad.LeftTrigger <= triggerThreshholdRelease && gamepad.RightTrigger <= triggerThreshholdRelease;
+					bool triggerReleased = gamepadState.LeftTrigger <= triggerThreshholdRelease && gamepadState.RightTrigger <= triggerThreshholdRelease;
 					if (!ap && gamepadState.IsDPadUpPressed && triggerReleased) {
 						tasState |= TASState.FrameStep;
 						break;
@@ -95,7 +95,7 @@ namespace KalimbaTAS {
 						Thread.Sleep(33);
 						break;
 					}
-					ap = gamepadState.IsDPadUpPressed && triggerReleased;
+					ap = gamepadState.IsDPadUpPressed;
 					Thread.Sleep(1);
 				}
 			}
