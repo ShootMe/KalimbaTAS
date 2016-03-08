@@ -90,9 +90,25 @@ namespace KalimbaTAS {
 					} else if (gamepadState.IsDPadDownPressed && triggerReleased) {
 						tasState &= ~TASState.FrameStep;
 						break;
-					} else if (gamepadState.RightThumbstickX >= 0.5) {
+					} else if (gamepadState.RightThumbstickX >= 0.2) {
 						tasState |= TASState.FrameStep;
-						Thread.Sleep(33);
+						int sleepTime = 0;
+						if (gamepadState.RightThumbstickX <= 0.3) {
+							sleepTime = 200;
+						} else if (gamepadState.RightThumbstickX <= 0.4) {
+							sleepTime = 100;
+						} else if (gamepadState.RightThumbstickX <= 0.5) {
+							sleepTime = 80;
+						} else if (gamepadState.RightThumbstickX <= 0.6) {
+							sleepTime = 64;
+						} else if (gamepadState.RightThumbstickX <= 0.7) {
+							sleepTime = 48;
+						} else if (gamepadState.RightThumbstickX <= 0.8) {
+							sleepTime = 32;
+						} else if (gamepadState.RightThumbstickX <= 0.9) {
+							sleepTime = 16;
+						}
+						Thread.Sleep(sleepTime);
 						break;
 					}
 					ap = gamepadState.IsDPadUpPressed;
