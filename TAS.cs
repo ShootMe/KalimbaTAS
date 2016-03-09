@@ -242,15 +242,10 @@ namespace KalimbaTAS {
 			}
 			if (HasFlag(tasState, TASState.Enable)) {
 				style.fontSize = (int)Mathf.Round(22f * AspectUtility.screenWidth / 1920f);
-				string msg = null;
-				try {
-					msg = player1.ToString() + "   " + player2.ToString();
-					string next = player1.NextInput() + "   " + player2.NextInput();
-					if (next.Trim() != string.Empty) {
-						msg += "   Next: " + next;
-					}
-				} catch (Exception e) {
-					msg = e.ToString();
+				string msg = player1.ToString() + "   " + player2.ToString();
+				string next = player1.NextInput() + "   " + player2.NextInput();
+				if (next.Trim() != string.Empty) {
+					msg += "   Next: " + next;
 				}
 
 				GUI.Label(new Rect(5f, 2f, 900f, 60f), msg, style);
