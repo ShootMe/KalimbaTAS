@@ -38,7 +38,7 @@ namespace KalimbaTAS {
 			controller.dpadRightButton.Or(Right);
 			controller.aButton.Or(Jump);
 			controller.xButton.Or(Swap);
-			if(Jump && controller is SteamKeyboardController) {
+			if (Jump && controller is SteamKeyboardController) {
 				Dictionary<string, EdgeDetectingBoolWrapper> buttons = (Dictionary<string, EdgeDetectingBoolWrapper>)((SteamKeyboardController)controller).ButtonDict();
 				buttons["enter"].Or(Jump);
 			}
@@ -64,7 +64,10 @@ namespace KalimbaTAS {
 			return one.Player != two.Player || one.Jump != two.Jump || one.Swap != two.Swap || one.Left != two.Left || one.Right != two.Right;
 		}
 		public override string ToString() {
-			return Frames.ToString().PadLeft(4, ' ') + "|" + (Jump ? "J" : ".") + "|" + (Swap ? "S" : ".") + "|" + (Left ? "L" : ".") + "|" + (Right ? "R" : ".") + "|" + Player.ToString();
+			return ToString(false);
+		}
+		public string ToString(bool singlePlayer) {
+			return Frames.ToString().PadLeft(4, ' ') + "|" + (Jump ? "J" : ".") + "|" + (Swap ? "S" : ".") + "|" + (Left ? "L" : ".") + "|" + (Right ? "R" : ".") + (singlePlayer ? "" : "|" + Player.ToString());
 		}
 		public string ToStringMono() {
 			return "P" + Player.ToString() + " " + Frames.ToString("0000") + "|" + (Jump ? "J" : "0") + "|" + (Swap ? "S" : "0") + "|" + (Left ? "L" : "0") + "|" + (Right ? "R" : "0");

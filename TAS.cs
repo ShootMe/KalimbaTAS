@@ -252,8 +252,8 @@ namespace KalimbaTAS {
 			}
 			if (HasFlag(tasState, TASState.Enable)) {
 				style.fontSize = (int)Mathf.Round(22f * AspectUtility.screenWidth / 1920f);
-				string msg = player1.ToString() + "   " + player2.ToString();
-				string next = player1.NextInput() + "   " + player2.NextInput();
+				string msg = player1.ToString() + (player2.CurrentFrame != 0 ? "   " + player2.ToString() : "");
+				string next = player1.NextInput() + (player2.CurrentFrame != 0 ? "   " + player2.NextInput() : "");
 				if (next.Trim() != string.Empty) {
 					msg += "   Next: " + next;
 				}

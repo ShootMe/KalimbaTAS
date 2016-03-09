@@ -15,6 +15,7 @@ namespace KalimbaTAS {
 		}
 
 		public bool CanPlayback { get { return inputIndex < inputs.Count; } }
+		public int CurrentFrame {  get { return currentFrame; } }
 		public override string ToString() {
 			if (frameToNext == 0 && lastInput != null) {
 				return lastInput.ToStringMono() + " ( " + currentFrame.ToString() + ")";
@@ -88,7 +89,7 @@ namespace KalimbaTAS {
 			} else if (input != lastInput) {
 				lastInput.Frames = currentFrame - lastInput.Frames;
 				if (lastInput.Frames != 0) {
-					File.AppendAllText(filePath, $"{lastInput}\r\n");
+					File.AppendAllText(filePath, lastInput.ToString(otherPlayer.currentFrame == 0) + "\r\n");
 				}
 				lastInput = input;
 			}
