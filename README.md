@@ -25,5 +25,6 @@ Otherwise the program will record a new file there in it's place.
 6. While playing back:
 	* To frame step forward one frame - DPad Up
 	* While frame stepping hold Right Analog Stick to the right to frame step continuously
-	* To continue playback at normal speed - DPad Down
+	* To continue playback at normal speed from frame stepping - DPad Down
+	* When not frame stepping move Right Analog Stick to slowdown or speedup playback
 	* To reload TAS file (after you make edits) - Left Trigger + Right Trigger + DPad Up

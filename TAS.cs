@@ -20,8 +20,8 @@ namespace KalimbaTAS {
 		private static List<TASInput> inputs = new List<TASInput>();
 		private static TASInput lastInput;
 		private static int frame, index, frameTotal;
-		public static float deltaTime = 0.016666667f;
-		public static int frameRate = 60;
+		public static float deltaTime = 0.016666667f, timeScale = 1f;
+		public static int frameRate = 0;
 		private static GUIStyle style;
 		private static float triggerThreshholdRelease = 0.1f, triggerThreshholdPressed = 0.7f;
 		static TAS() {
@@ -30,12 +30,7 @@ namespace KalimbaTAS {
 		public static void UpdateTAS(int controllerIndex, ref TotemGamePadPlugin.GamepadState gamepad) {
 			if (controllerIndex != 0) { return; }
 
-			UnityEngine.Time.fixedDeltaTime = deltaTime;
-			UnityEngine.Time.maximumDeltaTime = deltaTime;
-			UnityEngine.Time.captureFramerate = frameRate;
-			Application.targetFrameRate = frameRate;
-			QualitySettings.vSyncCount = 0;
-
+			HandleFrameRates(gamepad);
 			CheckControls(ref gamepad);
 			FrameStepping(ref gamepad);
 
@@ -49,6 +44,59 @@ namespace KalimbaTAS {
 				}
 				frame++;
 			}
+		}
+		private static void HandleFrameRates(TotemGamePadPlugin.GamepadState gamepad) {
+			if (HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.FrameStep) && !HasFlag(tasState, TASState.Record)) {
+				if (gamepad.RightThumbstickX <= -0.9) {
+					SetFrameRate(20);
+				} else if (gamepad.RightThumbstickX <= -0.8) {
+					SetFrameRate(25);
+				} else if (gamepad.RightThumbstickX <= -0.7) {
+					SetFrameRate(30);
+				} else if (gamepad.RightThumbstickX <= -0.6) {
+					SetFrameRate(35);
+				} else if (gamepad.RightThumbstickX <= -0.5) {
+					SetFrameRate(40);
+				} else if (gamepad.RightThumbstickX <= -0.4) {
+					SetFrameRate(45);
+				} else if (gamepad.RightThumbstickX <= -0.3) {
+					SetFrameRate(50);
+				} else if (gamepad.RightThumbstickX <= -0.2) {
+					SetFrameRate(55);
+				} else if (gamepad.RightThumbstickX <= 0.2) {
+					SetFrameRate();
+				} else if (gamepad.RightThumbstickX <= 0.3) {
+					SetFrameRate(75);
+				} else if (gamepad.RightThumbstickX <= 0.4) {
+					SetFrameRate(90);
+				} else if (gamepad.RightThumbstickX <= 0.5) {
+					SetFrameRate(105);
+				} else if (gamepad.RightThumbstickX <= 0.6) {
+					SetFrameRate(120);
+				} else if (gamepad.RightThumbstickX <= 0.7) {
+					SetFrameRate(135);
+				} else if (gamepad.RightThumbstickX <= 0.8) {
+					SetFrameRate(150);
+				} else if (gamepad.RightThumbstickX <= 0.9) {
+					SetFrameRate(165);
+				} else {
+					SetFrameRate(180);
+				}
+			} else {
+				SetFrameRate();
+			}
+		}
+		private static void SetFrameRate(int newFrameRate = 60) {
+			if(frameRate == newFrameRate) { return; }
+
+			frameRate = newFrameRate;
+			timeScale = (float)newFrameRate / 60f;
+			UnityEngine.Time.timeScale = timeScale;
+			UnityEngine.Time.captureFramerate = frameRate;
+			Application.targetFrameRate = frameRate;
+			UnityEngine.Time.fixedDeltaTime = deltaTime;
+			UnityEngine.Time.maximumDeltaTime = deltaTime;
+			QualitySettings.vSyncCount = 0;
 		}
 		private static void RecordNextFrame(int controllerIndex, TotemGamePadPlugin.GamepadState gamepad) {
 			TASInput input = new TASInput(frame, controllerIndex + 1, gamepad);
