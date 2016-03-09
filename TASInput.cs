@@ -36,10 +36,24 @@
 			gamepad.LeftThumbstickX = 0;
 		}
 		public static bool operator ==(TASInput one, TASInput two) {
-			return (object)one != null && (object)two != null && one.Player == two.Player && one.Jump == two.Jump && one.Swap == two.Swap && one.Left == two.Left && one.Right == two.Right;
+			if ((object)one == null && (object)two != null) {
+				return false;
+			} else if ((object)one != null && (object)two == null) {
+				return false;
+			} else if ((object)one == null && (object)two == null) {
+				return true;
+			}
+			return one.Player == two.Player && one.Jump == two.Jump && one.Swap == two.Swap && one.Left == two.Left && one.Right == two.Right;
 		}
 		public static bool operator !=(TASInput one, TASInput two) {
-			return (object)one == null || (object)two == null || one.Player != two.Player || one.Jump != two.Jump || one.Swap != two.Swap || one.Left != two.Left || one.Right != two.Right;
+			if ((object)one == null && (object)two != null) {
+				return true;
+			} else if ((object)one != null && (object)two == null) {
+				return true;
+			} else if ((object)one == null && (object)two == null) {
+				return false;
+			}
+			return one.Player != two.Player || one.Jump != two.Jump || one.Swap != two.Swap || one.Left != two.Left || one.Right != two.Right;
 		}
 		public override string ToString() {
 			return Frames.ToString().PadLeft(4, ' ') + "|" + (Jump ? "J" : ".") + "|" + (Swap ? "S" : ".") + "|" + (Left ? "L" : ".") + "|" + (Right ? "R" : ".") + "|" + Player.ToString();

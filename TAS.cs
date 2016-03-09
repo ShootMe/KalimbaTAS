@@ -17,32 +17,39 @@ namespace KalimbaTAS {
 	public class TAS {
 		private static TASState tasStateNext, tasState;
 		private static string filePath = "Kalimba.tas";
-		private static List<TASInput> inputs = new List<TASInput>();
-		private static TASInput lastInput;
-		private static int frame, index, frameTotal;
+		private static TASPlayer player1 = new TASPlayer(1, filePath);
+		private static TASPlayer player2 = new TASPlayer(2, filePath);
 		public static float deltaTime = 0.016666667f, timeScale = 1f;
+		private static float triggerThreshholdRelease = 0.1f, triggerThreshholdPressed = 0.7f;
 		public static int frameRate = 0;
 		private static GUIStyle style;
-		private static float triggerThreshholdRelease = 0.1f, triggerThreshholdPressed = 0.7f;
+
 		static TAS() {
 			NGUIDebug.Log("");
 		}
 		public static void UpdateTAS(int controllerIndex, ref TotemGamePadPlugin.GamepadState gamepad) {
-			if (controllerIndex != 0) { return; }
-
 			HandleFrameRates(gamepad);
 			CheckControls(ref gamepad);
 			FrameStepping(ref gamepad);
 
 			if (HasFlag(tasState, TASState.Enable)) {
 				if (HasFlag(tasState, TASState.Record)) {
-					RecordNextFrame(controllerIndex, gamepad);
-				} else if (index <= inputs.Count) {
-					PlayNextFrame(controllerIndex, ref gamepad);
+					if (controllerIndex == 0) {
+						player1.PlaybackPlayer(ref gamepad);
+					} else {
+						player2.PlaybackPlayer(ref gamepad);
+					}
 				} else {
-					DisableRun();
+					if (controllerIndex == 0) {
+						player1.PlaybackPlayer(ref gamepad);
+					} else {
+						player2.PlaybackPlayer(ref gamepad);
+					}
+
+					if (!player1.CanPlayback && !player2.CanPlayback) {
+						DisableRun();
+					}
 				}
-				frame++;
 			}
 		}
 		private static void HandleFrameRates(TotemGamePadPlugin.GamepadState gamepad) {
@@ -87,7 +94,7 @@ namespace KalimbaTAS {
 			}
 		}
 		private static void SetFrameRate(int newFrameRate = 60) {
-			if(frameRate == newFrameRate) { return; }
+			if (frameRate == newFrameRate) { return; }
 
 			frameRate = newFrameRate;
 			timeScale = (float)newFrameRate / 60f;
@@ -97,30 +104,6 @@ namespace KalimbaTAS {
 			UnityEngine.Time.fixedDeltaTime = deltaTime;
 			UnityEngine.Time.maximumDeltaTime = deltaTime;
 			QualitySettings.vSyncCount = 0;
-		}
-		private static void RecordNextFrame(int controllerIndex, TotemGamePadPlugin.GamepadState gamepad) {
-			TASInput input = new TASInput(frame, controllerIndex + 1, gamepad);
-			if (frame == 0 && input == lastInput) {
-				return;
-			} else if (input != lastInput) {
-				lastInput.Frames = frame - lastInput.Frames;
-				if (lastInput.Frames != 0) {
-					File.AppendAllText(filePath, $"{lastInput}\r\n");
-				}
-				lastInput = input;
-			}
-		}
-		private static void PlayNextFrame(int controllerIndex, ref TotemGamePadPlugin.GamepadState gamepad) {
-			if (frame >= frameTotal) {
-				if (index + 1 >= inputs.Count) {
-					DisableRun();
-					index++;
-					return;
-				}
-				lastInput = inputs[++index];
-				frameTotal += lastInput.Frames;
-			}
-			lastInput.UpdateInput(ref gamepad);
 		}
 		private static void FrameStepping(ref TotemGamePadPlugin.GamepadState gamepad) {
 			if (HasFlag(tasState, TASState.Enable) && (HasFlag(tasState, TASState.FrameStep) || (gamepad.IsDPadUpPressed && gamepad.LeftTrigger <= triggerThreshholdRelease && gamepad.RightTrigger <= triggerThreshholdRelease))) {
@@ -221,49 +204,30 @@ namespace KalimbaTAS {
 			tasStateNext &= ~TASState.Enable;
 
 			UpdateVariables(false);
-			ReadFile();
-
-			if (inputs.Count == 0) { return; }
-			lastInput = inputs[0];
-			frameTotal = lastInput.Frames;
 		}
 		private static void RecordRun() {
 			tasStateNext &= ~TASState.Record;
 
 			UpdateVariables(true);
-			File.Delete(filePath);
 		}
 		private static void UpdateVariables(bool recording) {
 			tasState |= TASState.Enable;
 			tasState &= ~TASState.FrameStep;
 			if (recording) {
 				tasState |= TASState.Record;
+				player1.InitializeRecording();
+				player2.InitializeRecording();
 			} else {
 				tasState &= ~TASState.Record;
+				player1.InitializePlayback();
+				player2.InitializePlayback();
 			}
-			frame = 0;
-			frameTotal = 0;
-			index = 0;
-			lastInput = new TASInput();
 		}
 		private static void ReloadRun() {
 			tasStateNext &= ~TASState.Reload;
 
-			ReadFile();
-
-			if (inputs.Count == 0) { return; }
-			index = 0;
-			lastInput = inputs[0];
-			frameTotal = lastInput.Frames;
-
-			while (frame >= frameTotal) {
-				if (index + 1 >= inputs.Count) {
-					index++;
-					return;
-				}
-				lastInput = inputs[++index];
-				frameTotal += lastInput.Frames;
-			}
+			player1.ReloadPlayback();
+			player2.ReloadPlayback();
 		}
 		private static bool HasFlag(TASState state, TASState flag) {
 			return (state & flag) == flag;
@@ -279,33 +243,17 @@ namespace KalimbaTAS {
 			if (HasFlag(tasState, TASState.Enable)) {
 				style.fontSize = (int)Mathf.Round(22f * AspectUtility.screenWidth / 1920f);
 				string msg = null;
-				if (HasFlag(tasState, TASState.Record)) {
-					msg = (lastInput != null ? lastInput.ToString() : "") + " (" + frame + ")";
-				} else {
-					int inputFrames = lastInput.Frames;
-					int startFrame = frameTotal - inputFrames;
-					msg = lastInput.ToStringMono() + " (" + (frame - startFrame).ToString() + " of " + inputFrames + ", " + frame + ")";
-					if (index + 1 < inputs.Count) {
-						msg += "\r\n" + inputs[index + 1].ToStringMono();
+				try {
+					msg = player1.ToString() + "   " + player2.ToString();
+					string next = player1.NextInput() + "   " + player2.NextInput();
+					if (next.Trim() != string.Empty) {
+						msg += "   Next: " + next;
 					}
+				} catch (Exception e) {
+					msg = e.ToString();
 				}
 
-				GUI.Label(new Rect(5f, 2f, 200f, 50f), msg, style);
-			}
-		}
-		private static void ReadFile() {
-			inputs.Clear();
-			if (!File.Exists(filePath)) { return; }
-			int count = 0;
-			using (StreamReader sr = new StreamReader(filePath)) {
-				while (!sr.EndOfStream) {
-					string line = sr.ReadLine();
-					count++;
-					TASInput input = new TASInput(line);
-					if (input.Frames != 0) {
-						inputs.Add(input);
-					}
-				}
+				GUI.Label(new Rect(5f, 2f, 900f, 60f), msg, style);
 			}
 		}
 	}
