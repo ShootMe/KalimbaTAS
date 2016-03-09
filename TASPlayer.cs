@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 namespace KalimbaTAS {
 	public class TASPlayer {
 		public int Player { get; set; }
@@ -21,7 +17,7 @@ namespace KalimbaTAS {
 		public bool CanPlayback { get { return inputIndex < inputs.Count; } }
 		public override string ToString() {
 			if (frameToNext == 0 && lastInput != null) {
-				return $"{lastInput} ({currentFrame})";
+				return lastInput.ToStringMono() + " ( " + currentFrame.ToString() + ")";
 			} else if (inputIndex < inputs.Count && lastInput != null) {
 				int inputFrames = lastInput.Frames;
 				int startFrame = frameToNext - inputFrames;
@@ -70,7 +66,7 @@ namespace KalimbaTAS {
 			inputs.Clear();
 			File.Delete(filePath);
 		}
-		public void PlaybackPlayer(ref TotemGamePadPlugin.GamepadState gamepad) {
+		public void PlaybackPlayer(BaseController controller) {
 			if (inputIndex < inputs.Count) {
 				if (currentFrame >= frameToNext) {
 					if (inputIndex + 1 >= inputs.Count) {
@@ -81,13 +77,13 @@ namespace KalimbaTAS {
 					frameToNext += lastInput.Frames;
 				}
 
-				lastInput.UpdateInput(ref gamepad);
+				lastInput.UpdateInput(controller);
 				currentFrame++;
 			}
 		}
-		public void RecordPlayer(TotemGamePadPlugin.GamepadState gamepad) {
-			TASInput input = new TASInput(currentFrame, Player, gamepad);
-			if (currentFrame == 0 && input == lastInput) {
+		public void RecordPlayer(TASPlayer otherPlayer, BaseController controller) {
+			TASInput input = new TASInput(currentFrame, Player, controller);
+			if (currentFrame == 0 && otherPlayer.currentFrame == 0 && input == lastInput) {
 				return;
 			} else if (input != lastInput) {
 				lastInput.Frames = currentFrame - lastInput.Frames;

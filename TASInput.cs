@@ -1,4 +1,6 @@
-﻿namespace KalimbaTAS {
+﻿using System.Collections.Generic;
+
+namespace KalimbaTAS {
 	public class TASInput {
 		public int Frames { get; set; }
 		public int Player { get; set; }
@@ -8,12 +10,13 @@
 		public bool Right { get; set; }
 
 		public TASInput() { }
-		public TASInput(int frames, int player, TotemGamePadPlugin.GamepadState gamepad) {
+		public TASInput(int frames, int player, BaseController controller) {
+			this.Player = player;
 			this.Frames = frames;
-			this.Jump = gamepad.IsAPressed;
-			this.Swap = gamepad.IsXPressed;
-			this.Left = gamepad.IsDPadLeftPressed || gamepad.LeftThumbstickX <= -0.5f;
-			this.Right = gamepad.IsDPadRightPressed || gamepad.LeftThumbstickX >= 0.5f;
+			this.Jump = controller.aButton.next || (controller is SteamKeyboardController ? ((Dictionary<string, EdgeDetectingBoolWrapper>)((SteamKeyboardController)controller).ButtonDict())["enter"].next : false);
+			this.Swap = controller.xButton.next;
+			this.Left = controller.dpadLeftButton.next || controller.leftStickX <= -0.5f;
+			this.Right = controller.dpadRightButton.next || controller.leftStickX >= 0.5f;
 		}
 		public TASInput(string line) {
 			try {
@@ -28,12 +31,17 @@
 				}
 			} catch { }
 		}
-		public void UpdateInput(ref TotemGamePadPlugin.GamepadState gamepad) {
-			gamepad.IsAPressed = Jump;
-			gamepad.IsXPressed = Swap;
-			gamepad.IsDPadLeftPressed = Left;
-			gamepad.IsDPadRightPressed = Right;
-			gamepad.LeftThumbstickX = 0;
+		public void UpdateInput(BaseController controller) {
+			controller.StartUpdate();
+
+			controller.dpadLeftButton.Or(Left);
+			controller.dpadRightButton.Or(Right);
+			controller.aButton.Or(Jump);
+			controller.xButton.Or(Swap);
+			if(Jump && controller is SteamKeyboardController) {
+				Dictionary<string, EdgeDetectingBoolWrapper> buttons = (Dictionary<string, EdgeDetectingBoolWrapper>)((SteamKeyboardController)controller).ButtonDict();
+				buttons["enter"].Or(Jump);
+			}
 		}
 		public static bool operator ==(TASInput one, TASInput two) {
 			if ((object)one == null && (object)two != null) {

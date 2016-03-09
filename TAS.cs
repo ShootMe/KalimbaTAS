@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using UnityEngine;
 namespace KalimbaTAS {
@@ -23,27 +21,44 @@ namespace KalimbaTAS {
 		private static float triggerThreshholdRelease = 0.1f, triggerThreshholdPressed = 0.7f;
 		public static int frameRate = 0;
 		private static GUIStyle style;
+		private static PlatformManagerImplementation.Player p1, p2;
 
 		static TAS() {
 			NGUIDebug.Log("");
 		}
-		public static void UpdateTAS(int controllerIndex, ref TotemGamePadPlugin.GamepadState gamepad) {
-			HandleFrameRates(gamepad);
-			CheckControls(ref gamepad);
-			FrameStepping(ref gamepad);
+		public static void UpdateTAS(BaseController controller) {
+			if (p1 == null || p2 == null) {
+				PlatformManagerImplementation imp = PlatformManager.Instance.imp;
+				p1 = imp.players[0];
+				p2 = imp.players[1];
+			}
+
+			if (controller is SteamController && !(controller is SteamKeyboardController) && ((SteamController)controller).controllerIndex == 0) {
+				TotemGamePadPlugin.UpdateGamepads();
+				TotemGamePadPlugin.GamepadState gamepad;
+				TotemGamePadPlugin.GetGamepadState(0, out gamepad);
+
+				HandleFrameRates(gamepad);
+				CheckControls(gamepad);
+				FrameStepping(gamepad);
+			}
+
+			if (p1.gameController != controller && p2.gameController != controller) {
+				return;
+			}
 
 			if (HasFlag(tasState, TASState.Enable)) {
 				if (HasFlag(tasState, TASState.Record)) {
-					if (controllerIndex == 0) {
-						player1.PlaybackPlayer(ref gamepad);
+					if (p1.gameController == controller) {
+						player1.RecordPlayer(player2, controller);
 					} else {
-						player2.PlaybackPlayer(ref gamepad);
+						player2.RecordPlayer(player1, controller);
 					}
 				} else {
-					if (controllerIndex == 0) {
-						player1.PlaybackPlayer(ref gamepad);
+					if (p1.gameController == controller) {
+						player1.PlaybackPlayer(controller);
 					} else {
-						player2.PlaybackPlayer(ref gamepad);
+						player2.PlaybackPlayer(controller);
 					}
 
 					if (!player1.CanPlayback && !player2.CanPlayback) {
@@ -105,44 +120,43 @@ namespace KalimbaTAS {
 			UnityEngine.Time.maximumDeltaTime = deltaTime;
 			QualitySettings.vSyncCount = 0;
 		}
-		private static void FrameStepping(ref TotemGamePadPlugin.GamepadState gamepad) {
+		private static void FrameStepping(TotemGamePadPlugin.GamepadState gamepad) {
 			if (HasFlag(tasState, TASState.Enable) && (HasFlag(tasState, TASState.FrameStep) || (gamepad.IsDPadUpPressed && gamepad.LeftTrigger <= triggerThreshholdRelease && gamepad.RightTrigger <= triggerThreshholdRelease))) {
 				bool ap = gamepad.IsDPadUpPressed;
 				while (HasFlag(tasState, TASState.Enable)) {
 					TotemGamePadPlugin.UpdateGamepads();
-					TotemGamePadPlugin.GamepadState gamepadState;
-					TotemGamePadPlugin.GetGamepadState(0, out gamepadState);
+					TotemGamePadPlugin.GetGamepadState(0, out gamepad);
 
-					CheckControls(ref gamepadState);
-					bool triggerReleased = gamepadState.LeftTrigger <= triggerThreshholdRelease && gamepadState.RightTrigger <= triggerThreshholdRelease;
-					if (!ap && gamepadState.IsDPadUpPressed && triggerReleased) {
+					CheckControls(gamepad);
+					bool triggerReleased = gamepad.LeftTrigger <= triggerThreshholdRelease && gamepad.RightTrigger <= triggerThreshholdRelease;
+					if (!ap && gamepad.IsDPadUpPressed && triggerReleased) {
 						tasState |= TASState.FrameStep;
 						break;
-					} else if (gamepadState.IsDPadDownPressed && triggerReleased) {
+					} else if (gamepad.IsDPadDownPressed && triggerReleased) {
 						tasState &= ~TASState.FrameStep;
 						break;
-					} else if (gamepadState.RightThumbstickX >= 0.2) {
+					} else if (gamepad.RightThumbstickX >= 0.2) {
 						tasState |= TASState.FrameStep;
 						int sleepTime = 0;
-						if (gamepadState.RightThumbstickX <= 0.3) {
+						if (gamepad.RightThumbstickX <= 0.3) {
 							sleepTime = 200;
-						} else if (gamepadState.RightThumbstickX <= 0.4) {
+						} else if (gamepad.RightThumbstickX <= 0.4) {
 							sleepTime = 100;
-						} else if (gamepadState.RightThumbstickX <= 0.5) {
+						} else if (gamepad.RightThumbstickX <= 0.5) {
 							sleepTime = 80;
-						} else if (gamepadState.RightThumbstickX <= 0.6) {
+						} else if (gamepad.RightThumbstickX <= 0.6) {
 							sleepTime = 64;
-						} else if (gamepadState.RightThumbstickX <= 0.7) {
+						} else if (gamepad.RightThumbstickX <= 0.7) {
 							sleepTime = 48;
-						} else if (gamepadState.RightThumbstickX <= 0.8) {
+						} else if (gamepad.RightThumbstickX <= 0.8) {
 							sleepTime = 32;
-						} else if (gamepadState.RightThumbstickX <= 0.9) {
+						} else if (gamepad.RightThumbstickX <= 0.9) {
 							sleepTime = 16;
 						}
 						Thread.Sleep(sleepTime);
 						break;
 					}
-					ap = gamepadState.IsDPadUpPressed;
+					ap = gamepad.IsDPadUpPressed;
 					Thread.Sleep(1);
 				}
 			}
@@ -152,14 +166,12 @@ namespace KalimbaTAS {
 			tasState &= ~TASState.FrameStep;
 			tasState &= ~TASState.Record;
 		}
-		private static void CheckControls(ref TotemGamePadPlugin.GamepadState gamepad) {
+		private static void CheckControls(TotemGamePadPlugin.GamepadState gamepad) {
 			if (!gamepad.IsDPadLeftPressed && HasFlag(tasStateNext, TASState.CheckpointPrevious)) {
 				tasStateNext &= ~TASState.CheckpointPrevious;
-				gamepad.IsDPadLeftPressed = false;
 				SelectCheckPoint(-1);
 			} else if (!gamepad.IsDPadRightPressed && HasFlag(tasStateNext, TASState.CheckpointNext)) {
 				tasStateNext &= ~TASState.CheckpointNext;
-				gamepad.IsDPadRightPressed = false;
 				SelectCheckPoint(1);
 			}
 
@@ -174,10 +186,8 @@ namespace KalimbaTAS {
 					tasStateNext |= TASState.Record;
 				} else if (!HasFlag(tasState, TASState.Record) && !HasFlag(tasState, TASState.Enable) && gamepad.IsDPadLeftPressed) {
 					tasStateNext |= TASState.CheckpointPrevious;
-					gamepad.IsDPadLeftPressed = false;
 				} else if (!HasFlag(tasState, TASState.Record) && !HasFlag(tasState, TASState.Enable) && gamepad.IsDPadRightPressed) {
 					tasStateNext |= TASState.CheckpointNext;
-					gamepad.IsDPadRightPressed = false;
 				}
 			}
 
