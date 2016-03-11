@@ -21,13 +21,20 @@ namespace KalimbaTAS {
 		public TASInput(string line) {
 			try {
 				string[] parameters = line.Split('|');
-				if (parameters.Length == 5 || parameters.Length == 6) {
+				if (parameters.Length == 2 || parameters.Length == 3) {
+					this.Frames = int.Parse(parameters[0]);
+					this.Jump = parameters[1].IndexOf('J') >= 0 || parameters[1].IndexOf('X') >= 0;
+					this.Swap = parameters[1].IndexOf('S') >= 0 || parameters[1].IndexOf('X') >= 0;
+					this.Left = parameters[1].IndexOf('L') >= 0;
+					this.Right = parameters[1].IndexOf('R') >= 0;
+					this.Player = parameters.Length == 2 || parameters[2] == "1" ? 1 : 2;
+				} else if (parameters.Length == 5 || parameters.Length == 6) {
 					this.Frames = int.Parse(parameters[0]);
 					this.Jump = parameters[1] != ".";
 					this.Swap = parameters[2] != ".";
 					this.Left = parameters[3] != ".";
 					this.Right = parameters[4] != ".";
-					this.Player = parameters.Length == 5 || parameters[5] == "1" ? 1 : 2;
+					this.Player = parameters.Length == 5 || parameters[6] == "1" ? 1 : 2;
 				}
 			} catch { }
 		}
@@ -67,10 +74,10 @@ namespace KalimbaTAS {
 			return ToString(false);
 		}
 		public string ToString(bool singlePlayer) {
-			return Frames.ToString().PadLeft(4, ' ') + "|" + (Jump ? "J" : ".") + "|" + (Swap ? "S" : ".") + "|" + (Left ? "L" : ".") + "|" + (Right ? "R" : ".") + (singlePlayer ? "" : "|" + Player.ToString());
+			return Frames.ToString().PadLeft(4, ' ') + "|" + (Jump && Swap ? "X" : Jump ? "J" : Swap? "S" : ".") + (Left ? "L" : Right? "R" : ".") + (singlePlayer ? "" : "|" + Player.ToString());
 		}
 		public string ToStringMono() {
-			return "P" + Player.ToString() + " " + Frames.ToString("0000") + "|" + (Jump ? "J" : "0") + "|" + (Swap ? "S" : "0") + "|" + (Left ? "L" : "0") + "|" + (Right ? "R" : "0");
+			return "P" + Player.ToString() + " " + Frames.ToString("0000") + "|" + (Jump && Swap ? "X" : Jump ? "J" : Swap ? "S" : "0") + (Left ? "L" : Right ? "R" : ".");
 		}
 		public override bool Equals(object obj) {
 			return base.Equals(obj);
