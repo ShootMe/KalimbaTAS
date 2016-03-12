@@ -18,7 +18,7 @@ namespace KalimbaTAS {
 		public int CurrentFrame {  get { return currentFrame; } }
 		public override string ToString() {
 			if (frameToNext == 0 && lastInput != null) {
-				return lastInput.ToStringMono() + " ( " + currentFrame.ToString() + ")";
+				return lastInput.ToStringMono() + " (" + currentFrame.ToString() + ")";
 			} else if (inputIndex < inputs.Count && lastInput != null) {
 				int inputFrames = lastInput.Frames;
 				int startFrame = frameToNext - inputFrames;

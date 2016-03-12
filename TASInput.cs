@@ -77,7 +77,7 @@ namespace KalimbaTAS {
 			return Frames.ToString().PadLeft(4, ' ') + "|" + (Jump && Swap ? "X" : Jump ? "J" : Swap? "S" : ".") + "|" + (Left ? "L" : Right? "R" : ".") + (singlePlayer ? "" : "|" + Player.ToString());
 		}
 		public string ToStringMono() {
-			return "P" + Player.ToString() + " " + Frames.ToString("0000") + "|" + (Jump && Swap ? "X" : Jump ? "J" : Swap ? "S" : "0") + "|" + (Left ? "L" : Right ? "R" : ".");
+			return "P" + Player.ToString() + " " + Frames.ToString("0000") + "|" + (Jump && Swap ? "X" : Jump ? "J" : Swap ? "S" : "0") + "|" + (Left ? "L" : Right ? "R" : "0");
 		}
 		public override bool Equals(object obj) {
 			return base.Equals(obj);
