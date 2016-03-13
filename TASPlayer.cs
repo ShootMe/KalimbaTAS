@@ -83,11 +83,12 @@ namespace KalimbaTAS {
 			}
 		}
 		public void RecordPlayer(TASPlayer otherPlayer, BaseController controller) {
-			TASInput input = new TASInput(currentFrame, Player, controller);
+			TASInput input = new TASInput(currentFrame, Player, inputIndex + 1, controller);
 			if (currentFrame == 0 && otherPlayer.currentFrame == 0 && input == lastInput) {
 				return;
 			} else if (input != lastInput) {
 				lastInput.Frames = currentFrame - lastInput.Frames;
+				inputIndex++;
 				if (lastInput.Frames != 0) {
 					File.AppendAllText(filePath, lastInput.ToString(otherPlayer.currentFrame == 0) + "\r\n");
 				}

@@ -11,14 +11,14 @@ namespace KalimbaTAS {
 		public int Line { get; set; }
 
 		public TASInput() { }
-		public TASInput(int frames, int player, BaseController controller) {
+		public TASInput(int frames, int player, int inputCount, BaseController controller) {
 			this.Player = player;
 			this.Frames = frames;
 			this.Jump = controller.aButton.next || (controller is SteamKeyboardController ? ((Dictionary<string, EdgeDetectingBoolWrapper>)((SteamKeyboardController)controller).ButtonDict())["enter"].next : false);
 			this.Swap = controller.xButton.next;
 			this.Left = controller.dpadLeftButton.next || controller.leftStickX <= -0.5f;
 			this.Right = controller.dpadRightButton.next || controller.leftStickX >= 0.5f;
-			this.Line = 0;
+			this.Line = inputCount;
 		}
 		public TASInput(string line, int lineNum) {
 			try {
