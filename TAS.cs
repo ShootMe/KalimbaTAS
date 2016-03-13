@@ -258,7 +258,19 @@ namespace KalimbaTAS {
 					msg += "   Next: " + next;
 				}
 
-				GUI.Label(new Rect(5f, 2f, 900f, 60f), msg, style);
+				Vector3 p1V = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager.controllers[0].controlledPlayers[0].GetVelocity();
+				Vector3 p2V = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager.controllers[0].controlledPlayers[1].GetVelocity();
+
+				if (GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager.controllers.Length > 1) {
+					Controller c2 = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager.controllers[1];
+					Vector3 p3V = c2.controlledPlayers[0].GetVelocity();
+					Vector3 p4V = c2.controlledPlayers[1].GetVelocity();
+					msg += "\r\n(T1: " + p1V.x.ToString("0.00") + "," + p1V.y.ToString("0.00") + " T2: " + p2V.x.ToString("0.00") + "," + p2V.y.ToString("0.00") + " T3: " + p3V.x.ToString("0.00") + "," + p3V.y.ToString("0.00") + " T4: " + p4V.x.ToString("0.00") + "," + p4V.y.ToString("0.00") + ")";
+				} else {
+					msg += "\r\n(T1: " + p1V.x.ToString("0.00") + "," + p1V.y.ToString("0.00") + " T2: " + p2V.x.ToString("0.00") + "," + p2V.y.ToString("0.00") + ")";
+				}
+
+				GUI.Label(new Rect(5f, 2f, AspectUtility.screenWidth - 5f, 60f), msg, style);
 			}
 		}
 	}
