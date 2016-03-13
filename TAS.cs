@@ -255,7 +255,7 @@ namespace KalimbaTAS {
 				string msg = player1.ToString() + (player2.CurrentFrame != 0 ? "   " + player2.ToString() : "");
 				string next = player1.NextInput() + (player2.CurrentFrame != 0 ? "   " + player2.NextInput() : "");
 				if (next.Trim() != string.Empty) {
-					msg += "   Next: " + next;
+					msg += "   " + next;
 				}
 
 				Vector3 p1V = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager.controllers[0].controlledPlayers[0].GetVelocity();

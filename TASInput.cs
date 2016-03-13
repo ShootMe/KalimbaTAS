@@ -8,6 +8,7 @@ namespace KalimbaTAS {
 		public bool Swap { get; set; }
 		public bool Left { get; set; }
 		public bool Right { get; set; }
+		public int Line { get; set; }
 
 		public TASInput() { }
 		public TASInput(int frames, int player, BaseController controller) {
@@ -17,8 +18,9 @@ namespace KalimbaTAS {
 			this.Swap = controller.xButton.next;
 			this.Left = controller.dpadLeftButton.next || controller.leftStickX <= -0.5f;
 			this.Right = controller.dpadRightButton.next || controller.leftStickX >= 0.5f;
+			this.Line = 0;
 		}
-		public TASInput(string line) {
+		public TASInput(string line, int lineNum) {
 			try {
 				string[] parameters = line.Split('|');
 				if (parameters.Length == 3 || parameters.Length == 4) {
@@ -36,6 +38,7 @@ namespace KalimbaTAS {
 					this.Right = parameters[4] != ".";
 					this.Player = parameters.Length == 5 || parameters[6] == "1" ? 1 : 2;
 				}
+				this.Line = lineNum;
 			} catch { }
 		}
 		public void UpdateInput(BaseController controller) {
@@ -74,10 +77,10 @@ namespace KalimbaTAS {
 			return ToString(false);
 		}
 		public string ToString(bool singlePlayer) {
-			return Frames.ToString().PadLeft(4, ' ') + "|" + (Jump && Swap ? "X" : Jump ? "J" : Swap? "S" : ".") + "|" + (Left ? "L" : Right? "R" : ".") + (singlePlayer ? "" : "|" + Player.ToString());
+			return Frames.ToString().PadLeft(4, ' ') + "|" + (Jump && Swap ? "X" : Jump ? "J" : Swap ? "S" : ".") + "|" + (Left ? "L" : Right ? "R" : ".") + (singlePlayer ? "" : "|" + Player.ToString());
 		}
-		public string ToStringMono() {
-			return "P" + Player.ToString() + " " + Frames.ToString("0000") + "|" + (Jump && Swap ? "X" : Jump ? "J" : Swap ? "S" : "0") + "|" + (Left ? "L" : Right ? "R" : "0");
+		public string ToStringDisplay() {
+			return "P" + Player.ToString() + "-Line" + Line.ToString() + "(" + Frames.ToString() + " | " + (Jump && Swap ? "X" : Jump ? "J" : Swap ? "S" : "0") + " | " + (Left ? "L" : Right ? "R" : "0") + ")";
 		}
 		public override bool Equals(object obj) {
 			return base.Equals(obj);

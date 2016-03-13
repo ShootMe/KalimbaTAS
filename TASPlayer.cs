@@ -15,20 +15,20 @@ namespace KalimbaTAS {
 		}
 
 		public bool CanPlayback { get { return inputIndex < inputs.Count; } }
-		public int CurrentFrame {  get { return currentFrame; } }
+		public int CurrentFrame { get { return currentFrame; } }
 		public override string ToString() {
 			if (frameToNext == 0 && lastInput != null) {
-				return lastInput.ToStringMono() + " (" + currentFrame.ToString() + ")";
+				return lastInput.ToStringDisplay() + "(" + currentFrame.ToString() + ")";
 			} else if (inputIndex < inputs.Count && lastInput != null) {
 				int inputFrames = lastInput.Frames;
 				int startFrame = frameToNext - inputFrames;
-				return lastInput.ToStringMono() + " (" + (currentFrame - startFrame).ToString() + " / " + inputFrames + " : " + currentFrame + ")";
+				return lastInput.ToStringDisplay() + "(" + (currentFrame - startFrame).ToString() + " / " + inputFrames + " : " + currentFrame + ")";
 			}
 			return string.Empty;
 		}
 		public string NextInput() {
 			if (frameToNext != 0 && inputIndex + 1 < inputs.Count) {
-				return inputs[inputIndex + 1].ToStringMono();
+				return inputs[inputIndex + 1].ToStringDisplay();
 			}
 			return string.Empty;
 		}
@@ -99,11 +99,12 @@ namespace KalimbaTAS {
 			inputs.Clear();
 			if (!File.Exists(filePath)) { return; }
 
+			int lines = 0;
 			using (StreamReader sr = new StreamReader(filePath)) {
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();
 
-					TASInput input = new TASInput(line);
+					TASInput input = new TASInput(line, ++lines);
 					if (input.Frames != 0 && input.Player == Player) {
 						inputs.Add(input);
 					}
