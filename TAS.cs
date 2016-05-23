@@ -258,16 +258,21 @@ namespace KalimbaTAS {
 					msg += "   " + next;
 				}
 
-				Vector3 p1V = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager.controllers[0].controlledPlayers[0].GetVelocity();
-				Vector3 p2V = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager.controllers[0].controlledPlayers[1].GetVelocity();
-
-				if (GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager.controllers.Length > 1) {
-					Controller c2 = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager.controllers[1];
+				GameManager gm = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager;
+				bool t1CJ = gm.controllers[0].controlledPlayers[0].CanJump();
+				bool t2CJ = gm.controllers[0].controlledPlayers[1].CanJump();
+				Vector3 p1V = gm.controllers[0].controlledPlayers[0].GetVelocity();
+				Vector3 p2V = gm.controllers[0].controlledPlayers[1].GetVelocity();
+				bool loading = GlobalGameManager.Instance.levelIsLoading;
+				if (gm.controllers.Length > 1) {
+					Controller c2 = gm.controllers[1];
+					bool t3CJ = c2.controlledPlayers[0].CanJump();
+					bool t4CJ = c2.controlledPlayers[1].CanJump();
 					Vector3 p3V = c2.controlledPlayers[0].GetVelocity();
 					Vector3 p4V = c2.controlledPlayers[1].GetVelocity();
-					msg += "\r\n(T1: " + p1V.x.ToString("0.00") + "," + p1V.y.ToString("0.00") + " T2: " + p2V.x.ToString("0.00") + "," + p2V.y.ToString("0.00") + " T3: " + p3V.x.ToString("0.00") + "," + p3V.y.ToString("0.00") + " T4: " + p4V.x.ToString("0.00") + "," + p4V.y.ToString("0.00") + ")";
+					msg += "\r\n(T1: " + p1V.x.ToString("0.00") + "," + p1V.y.ToString("0.00") + " " + (t1CJ ? "T" : "F") + " T2: " + p2V.x.ToString("0.00") + "," + p2V.y.ToString("0.00") + " " + (t2CJ ? "T" : "F") + " T3: " + p3V.x.ToString("0.00") + "," + p3V.y.ToString("0.00") + " " + (t3CJ ? "T" : "F") + " T4: " + p4V.x.ToString("0.00") + "," + p4V.y.ToString("0.00") + " " + (t4CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
 				} else {
-					msg += "\r\n(T1: " + p1V.x.ToString("0.00") + "," + p1V.y.ToString("0.00") + " T2: " + p2V.x.ToString("0.00") + "," + p2V.y.ToString("0.00") + ")";
+					msg += "\r\n(T1: " + p1V.x.ToString("0.00") + "," + p1V.y.ToString("0.00") + " " + (t1CJ ? "T" : "F") + " T2: " + p2V.x.ToString("0.00") + "," + p2V.y.ToString("0.00") + " " + (t2CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
 				}
 
 				GUI.Label(new Rect(5f, 2f, AspectUtility.screenWidth - 5f, 60f), msg, style);
