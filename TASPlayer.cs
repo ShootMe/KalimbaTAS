@@ -69,19 +69,20 @@ namespace KalimbaTAS {
 		}
 		public void PlaybackPlayer(BaseController controller) {
 			if (inputIndex < inputs.Count) {
-				if (currentFrame >= frameToNext && (!lastInput.Loading || !GlobalGameManager.Instance.levelIsLoading)) {
-					if (inputIndex + 1 >= inputs.Count) {
-						inputIndex++;
-						return;
+				if (!GlobalGameManager.Instance.levelIsLoading) {
+					if (currentFrame >= frameToNext) {
+						if (inputIndex + 1 >= inputs.Count) {
+							inputIndex++;
+							return;
+						}
+						lastInput = inputs[++inputIndex];
+						frameToNext += lastInput.Frames;
 					}
-					lastInput = inputs[++inputIndex];
-					frameToNext += lastInput.Frames;
+
+					currentFrame++;
 				}
 
 				lastInput.UpdateInput(controller);
-				if (!lastInput.Loading) {
-					currentFrame++;
-				}
 			}
 		}
 		public void RecordPlayer(TASPlayer otherPlayer, BaseController controller) {
@@ -108,7 +109,7 @@ namespace KalimbaTAS {
 					string line = sr.ReadLine();
 
 					TASInput input = new TASInput(line, ++lines);
-					if ((input.Frames != 0 || input.Loading) && input.Player == Player) {
+					if (input.Frames != 0 && input.Player == Player) {
 						inputs.Add(input);
 					}
 				}
