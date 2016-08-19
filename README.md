@@ -4,11 +4,11 @@ Tool Assisted Modification for Kalimba
 Open Kalimba in your Steam directory (usually C:\Program Files (x86)\Steam\steamapps\common\Kalimba\)
 
 ### Setup
-	Copy Assembly-CSharp.dll and KalimbaTAS.dll to (Kalimba\Kalimba_Data\Managed\) from the above directory.
+	Copy Assembly-CSharp.dll and KalimbaTAS.dll to (\Kalimba_Data\Managed\).
 	
 	Make sure to backup the original Assembly-CSharp.dll before hand.
 
-If you are going to playback a TAS file that is already created copy the file to (C:\Program Files (x86)\Steam\steamapps\common\Kalimba\) and make sure it is named 'Kalimba.tas'
+If you are going to playback a TAS file that is already created, copy the file to the steam directory listed at the top and make sure it is named 'Kalimba.tas'
 Otherwise the program will record a new file there in it's place.
 
 ### Controls
@@ -28,3 +28,25 @@ Otherwise the program will record a new file there in it's place.
 	* To continue playback at normal speed from frame stepping - DPad Down
 	* When not frame stepping move Right Analog Stick to slowdown or speedup playback
 	* To reload TAS file (after you make edits) - Left Trigger + Right Trigger + DPad Up
+
+###File Format
+000|J/S/X/.|L/R/.(|1/2)
+
+Examples:
+
+  1|J|R   (For 1 frame, hold Jump and Right)
+  
+  1|X|L|2 (Coop player 2 will for 1 frame, hold Jump, Switch, and Left)
+  
+100|.|R   (For 100 frames, hold Right)
+
+ 20|.|.   (For 20 frames, hold nothing)
+
+###Things to try and avoid while TAS'ing
+1. Trampolines can give the TAS troubles. So try and not fast forward through them as the game will probably desync (but not always).
+2. Try not to jump off a ledge on the 3rd frame. This seems to be RNG dependant and will not always work in every playback.
+3. Try not to buffer jumps from under a ledge. This also seems to be RNG and the totems will end up jumping at different frames on playback to playback.
+4. There can be times when getting pickups are RNG if you barely clip them. Just try it multiple times to make sure it will always work.
+
+###Examples
+You can find all of the current files I have completed in the Examples folder.
