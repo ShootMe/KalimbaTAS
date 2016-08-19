@@ -65,6 +65,19 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="Examples\FR - Dark Void Any.tas" />
+    <None Include="Examples\FR - Inner Void Any.tas" />
+    <None Include="Examples\FR - Inner World Any.tas" />
+    <None Include="Examples\IL - BuckTeeth.tas" />
+    <None Include="Examples\IL - DemonGo.tas" />
+    <None Include="Examples\IL - Frogger.tas" />
+    <None Include="Examples\IL - GreenishVireo.tas" />
+    <None Include="Examples\IL - GrimeyGator.tas" />
+    <None Include="Examples\IL - KoalaKid.tas" />
+    <None Include="Examples\IL - NappyOwl.tas" />
+    <None Include="Examples\IL - SnakyFace.tas" />
+    <None Include="Examples\IL - SoSuMi.tas" />
+    <None Include="Examples\IL - StaringCow.tas" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

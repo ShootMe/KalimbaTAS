@@ -116,8 +116,9 @@ namespace KalimbaTAS {
 			UnityEngine.Time.timeScale = timeScale;
 			UnityEngine.Time.captureFramerate = frameRate;
 			Application.targetFrameRate = frameRate;
-			UnityEngine.Time.fixedDeltaTime = deltaTime;
-			UnityEngine.Time.maximumDeltaTime = deltaTime;
+			UnityEngine.Time.maximumDeltaTime = UnityEngine.Time.fixedDeltaTime;
+			//UnityEngine.Time.fixedDeltaTime = deltaTime;
+			//UnityEngine.Time.maximumDeltaTime = deltaTime;
 			QualitySettings.vSyncCount = 0;
 		}
 		private static void FrameStepping(TotemGamePadPlugin.GamepadState gamepad) {
