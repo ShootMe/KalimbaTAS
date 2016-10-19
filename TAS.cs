@@ -116,10 +116,9 @@ namespace KalimbaTAS {
 			UnityEngine.Time.timeScale = timeScale;
 			UnityEngine.Time.captureFramerate = frameRate;
 			Application.targetFrameRate = frameRate;
+			UnityEngine.Time.fixedDeltaTime = 1f / 60f;
 			UnityEngine.Time.maximumDeltaTime = UnityEngine.Time.fixedDeltaTime;
-			//UnityEngine.Time.fixedDeltaTime = deltaTime;
-			//UnityEngine.Time.maximumDeltaTime = deltaTime;
-			QualitySettings.vSyncCount = 0;
+			QualitySettings.vSyncCount = newFrameRate == 60 ? 1 : 0;
 		}
 		private static void FrameStepping(TotemGamePadPlugin.GamepadState gamepad) {
 			if (HasFlag(tasState, TASState.Enable) && (HasFlag(tasState, TASState.FrameStep) || (gamepad.IsDPadUpPressed && gamepad.LeftTrigger <= triggerThreshholdRelease && gamepad.RightTrigger <= triggerThreshholdRelease))) {
@@ -160,6 +159,7 @@ namespace KalimbaTAS {
 					ap = gamepad.IsDPadUpPressed;
 					Thread.Sleep(1);
 				}
+				ReloadRun();
 			}
 		}
 		private static void DisableRun() {
@@ -181,8 +181,6 @@ namespace KalimbaTAS {
 					tasStateNext |= TASState.Enable;
 				} else if (gamepad.IsDPadDownPressed) {
 					DisableRun();
-				} else if (!HasFlag(tasState, TASState.Reload) && HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.Record) && gamepad.IsDPadUpPressed) {
-					tasStateNext |= TASState.Reload;
 				} else if (!HasFlag(tasState, TASState.Record) && gamepad.IsLeftThumbstickPressed) {
 					tasStateNext |= TASState.Record;
 				} else if (!HasFlag(tasState, TASState.Record) && !HasFlag(tasState, TASState.Enable) && gamepad.IsDPadLeftPressed) {
@@ -197,8 +195,6 @@ namespace KalimbaTAS {
 					EnableRun();
 				} else if (HasFlag(tasStateNext, TASState.Record)) {
 					RecordRun();
-				} else if (HasFlag(tasStateNext, TASState.Reload)) {
-					ReloadRun();
 				}
 			}
 		}
