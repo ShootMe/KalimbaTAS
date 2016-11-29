@@ -27,7 +27,6 @@ Otherwise the program will record a new file there in it's place.
 	* While frame stepping hold Right Analog Stick to the right to frame step continuously
 	* To continue playback at normal speed from frame stepping - DPad Down
 	* When not frame stepping move Right Analog Stick to slowdown or speedup playback
-	* To reload TAS file (after you make edits) - Left Trigger + Right Trigger + DPad Up
 
 ###File Format
 000|J/S/X/.|L/R/.(|1/2)
