@@ -22,7 +22,8 @@ namespace KalimbaTAS {
 		}
 		public TASInput(string line, int lineNum) {
 			try {
-				string[] parameters = line.Split('|');
+				string[] parameters = line.Split('|', ',');
+
 				if (parameters.Length == 3 || parameters.Length == 4) {
 					this.Frames = int.Parse(parameters[0]);
 					this.Jump = parameters[1].IndexOf('J') >= 0 || parameters[1].IndexOf('X') >= 0;
@@ -44,13 +45,35 @@ namespace KalimbaTAS {
 		public void UpdateInput(BaseController controller) {
 			controller.StartUpdate();
 
-			controller.dpadLeftButton.Or(Left);
-			controller.dpadRightButton.Or(Right);
-			controller.aButton.Or(Jump);
-			controller.xButton.Or(Swap);
-			if (Jump && controller is SteamKeyboardController) {
+			controller.dpadLeftButton.StartUpdateSet(Left);
+			controller.dpadRightButton.StartUpdateSet(Right);
+			controller.aButton.StartUpdateSet(Jump);
+			controller.xButton.StartUpdateSet(Swap);
+			if (controller is SteamKeyboardController) {
 				Dictionary<string, EdgeDetectingBoolWrapper> buttons = (Dictionary<string, EdgeDetectingBoolWrapper>)((SteamKeyboardController)controller).ButtonDict();
-				buttons["enter"].Or(Jump);
+
+				buttons["w"].StartUpdateSet(Jump);
+				buttons["up"].StartUpdateSet(Jump);
+				buttons["space"].StartUpdateSet(Jump);
+				buttons["enter"].StartUpdateSet(Jump);
+				buttons["jump"].StartUpdateSet(Jump);
+
+				buttons["a"].StartUpdateSet(Left);
+				buttons["left"].StartUpdateSet(Left);
+
+				buttons["d"].StartUpdateSet(Right);
+				buttons["right"].StartUpdateSet(Right);
+
+				buttons["s"].StartUpdateSet(Swap);
+				buttons["down"].StartUpdateSet(Swap);
+				buttons["lShift"].StartUpdateSet(Swap);
+				buttons["rShift"].StartUpdateSet(Swap);
+				buttons["lCtrl"].StartUpdateSet(Swap);
+				buttons["rCtrl"].StartUpdateSet(Swap);
+				buttons["swap"].StartUpdateSet(Swap);
+
+				buttons["esc"].StartUpdateSet(false);
+				buttons["cancel"].StartUpdateSet(false);
 			}
 		}
 		public static bool operator ==(TASInput one, TASInput two) {

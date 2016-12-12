@@ -89,7 +89,7 @@ namespace KalimbaTAS {
 			TASInput input = new TASInput(currentFrame, Player, inputIndex + 1, controller);
 			if (currentFrame == 0 && otherPlayer.currentFrame == 0 && input == lastInput) {
 				return;
-			} else if (input != lastInput) {
+			} else if (input != lastInput && !GlobalGameManager.Instance.levelIsLoading) {
 				lastInput.Frames = currentFrame - lastInput.Frames;
 				inputIndex++;
 				if (lastInput.Frames != 0) {

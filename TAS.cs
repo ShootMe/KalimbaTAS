@@ -22,6 +22,7 @@ namespace KalimbaTAS {
 		public static int frameRate = 0;
 		private static GUIStyle style;
 		private static PlatformManagerImplementation.Player p1, p2;
+		public static bool isRunning = false;
 
 		static TAS() {
 			NGUIDebug.Log("");
@@ -48,6 +49,7 @@ namespace KalimbaTAS {
 			}
 
 			if (HasFlag(tasState, TASState.Enable)) {
+				isRunning = true;
 				if (HasFlag(tasState, TASState.Record)) {
 					if (p1.gameController == controller) {
 						player1.RecordPlayer(player2, controller);
@@ -65,6 +67,8 @@ namespace KalimbaTAS {
 						DisableRun();
 					}
 				}
+			} else {
+				isRunning = false;
 			}
 		}
 		private static void HandleFrameRates(TotemGamePadPlugin.GamepadState gamepad) {
