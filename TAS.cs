@@ -23,9 +23,13 @@ namespace KalimbaTAS {
 		private static GUIStyle style;
 		private static PlatformManagerImplementation.Player p1, p2;
 		public static bool isRunning = false;
+		public static string TASOutput;
+		public static bool showOutput = true;
 
 		static TAS() {
 			NGUIDebug.Log("");
+			long temp = 0x56AF3C93E17D2F8B;
+			TASOutput = temp.ToString("X");
 		}
 		public static void UpdateTAS(BaseController controller) {
 			if (p1 == null || p2 == null) {
@@ -69,6 +73,7 @@ namespace KalimbaTAS {
 				}
 			} else {
 				isRunning = false;
+				TASOutput = null;
 			}
 		}
 		private static void HandleFrameRates(TotemGamePadPlugin.GamepadState gamepad) {
@@ -125,7 +130,7 @@ namespace KalimbaTAS {
 			QualitySettings.vSyncCount = newFrameRate == 60 ? 1 : 0;
 		}
 		private static void FrameStepping(TotemGamePadPlugin.GamepadState gamepad) {
-			if (HasFlag(tasState, TASState.Enable) && (HasFlag(tasState, TASState.FrameStep) || (gamepad.IsDPadUpPressed && gamepad.LeftTrigger <= triggerThreshholdRelease && gamepad.RightTrigger <= triggerThreshholdRelease))) {
+			if (HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.Record) && (HasFlag(tasState, TASState.FrameStep) || (gamepad.IsDPadUpPressed && gamepad.LeftTrigger <= triggerThreshholdRelease && gamepad.RightTrigger <= triggerThreshholdRelease))) {
 				bool ap = gamepad.IsDPadUpPressed;
 				while (HasFlag(tasState, TASState.Enable)) {
 					TotemGamePadPlugin.UpdateGamepads();
@@ -181,11 +186,11 @@ namespace KalimbaTAS {
 			}
 
 			if (gamepad.RightTrigger >= triggerThreshholdPressed && gamepad.LeftTrigger >= triggerThreshholdPressed) {
-				if (!HasFlag(tasState, TASState.Enable) && gamepad.IsRightThumbstickPressed) {
+				if (!HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.Record) && gamepad.IsRightThumbstickPressed) {
 					tasStateNext |= TASState.Enable;
 				} else if (gamepad.IsDPadDownPressed) {
 					DisableRun();
-				} else if (!HasFlag(tasState, TASState.Record) && gamepad.IsLeftThumbstickPressed) {
+				} else if (!HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.Record) && gamepad.IsLeftThumbstickPressed) {
 					tasStateNext |= TASState.Record;
 				} else if (!HasFlag(tasState, TASState.Record) && !HasFlag(tasState, TASState.Enable) && gamepad.IsDPadLeftPressed) {
 					tasStateNext |= TASState.CheckpointPrevious;
@@ -253,10 +258,10 @@ namespace KalimbaTAS {
 			}
 			if (HasFlag(tasState, TASState.Enable)) {
 				style.fontSize = (int)Mathf.Round(22f * AspectUtility.screenWidth / 1920f);
-				string msg = player1.ToString() + (player2.CurrentFrame != 0 ? "   " + player2.ToString() : "");
-				string next = player1.NextInput() + (player2.CurrentFrame != 0 ? "   " + player2.NextInput() : "");
+				string msg = player1.ToString() + (player2.CurrentFrame != 0 ? " " + player2.ToString() : "");
+				string next = player1.NextInput() + (player2.CurrentFrame != 0 ? " " + player2.NextInput() : "");
 				if (next.Trim() != string.Empty) {
-					msg += "   " + next;
+					msg += " " + next;
 				}
 
 				GameManager gm = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager;
@@ -271,12 +276,15 @@ namespace KalimbaTAS {
 					bool t4CJ = c2.controlledPlayers[1].CanJump();
 					Vector3 p3V = c2.controlledPlayers[0].GetVelocity();
 					Vector3 p4V = c2.controlledPlayers[1].GetVelocity();
-					msg += "\r\n(T1: " + p1V.x.ToString("0.00") + "," + p1V.y.ToString("0.00") + " " + (t1CJ ? "T" : "F") + " T2: " + p2V.x.ToString("0.00") + "," + p2V.y.ToString("0.00") + " " + (t2CJ ? "T" : "F") + " T3: " + p3V.x.ToString("0.00") + "," + p3V.y.ToString("0.00") + " " + (t3CJ ? "T" : "F") + " T4: " + p4V.x.ToString("0.00") + "," + p4V.y.ToString("0.00") + " " + (t4CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
+					msg += "\r\nT1: (" + p1V.x.ToString("0.00") + ", " + p1V.y.ToString("0.00") + ", " + (t1CJ ? "T" : "F") + ") T2: (" + p2V.x.ToString("0.00") + ", " + p2V.y.ToString("0.00") + ", " + (t2CJ ? "T" : "F") + ") T3: (" + p3V.x.ToString("0.00") + ", " + p3V.y.ToString("0.00") + ", " + (t3CJ ? "T" : "F") + ") T4: (" + p4V.x.ToString("0.00") + ", " + p4V.y.ToString("0.00") + ", " + (t4CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
 				} else {
-					msg += "\r\n(T1: " + p1V.x.ToString("0.00") + "," + p1V.y.ToString("0.00") + " " + (t1CJ ? "T" : "F") + " T2: " + p2V.x.ToString("0.00") + "," + p2V.y.ToString("0.00") + " " + (t2CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
+					msg += "\r\nT1: (" + p1V.x.ToString("0.00") + ", " + p1V.y.ToString("0.00") + ", " + (t1CJ ? "T" : "F") + ") T2: (" + p2V.x.ToString("0.00") + ", " + p2V.y.ToString("0.00") + ", " + (t2CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
 				}
+				TASOutput = msg;
 
-				GUI.Label(new Rect(5f, 2f, AspectUtility.screenWidth - 5f, 60f), msg, style);
+				if (showOutput) {
+					GUI.Label(new Rect(5f, 2f, AspectUtility.screenWidth - 5f, 60f), msg, style);
+				}
 			}
 		}
 	}
