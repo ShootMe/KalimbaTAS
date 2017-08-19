@@ -36,10 +36,8 @@ namespace KalimbaTAS {
 			Back = controller.bButton.next || controller.startButton.next;
 			Up = controller.dpadUpButton.next || controller.leftStickY >= 0.5f;
 			Down = controller.dpadDownButton.next || controller.leftStickY <= -0.5f;
-			Actions = (Left ? Actions.L : Actions.None) | (Right ? Actions.R : Actions.None) | (Jump ? Actions.J : Actions.None)
-				| (Swap ? Actions.S : Actions.None) | (Back ? Actions.B : Actions.None) | (Up ? Actions.U : Actions.None)
-				| (Down ? Actions.D : Actions.None);
 			Line = inputCount;
+			UpdateActions();
 		}
 		public TASInput(string line, int lineNum) {
 			string[] parameters = line.Split('|', ',');
@@ -64,7 +62,9 @@ namespace KalimbaTAS {
 					case "2": Player = 2; break;
 				}
 			}
-
+			UpdateActions();
+		}
+		public void UpdateActions() {
 			Actions = (Left ? Actions.L : Actions.None) | (Right ? Actions.R : Actions.None) | (Jump ? Actions.J : Actions.None)
 				| (Swap ? Actions.S : Actions.None) | (Back ? Actions.B : Actions.None) | (Up ? Actions.U : Actions.None)
 				| (Down ? Actions.D : Actions.None);
@@ -89,11 +89,11 @@ namespace KalimbaTAS {
 				buttons["enter"].StartUpdateSet(Jump);
 				buttons["jump"].StartUpdateSet(Jump);
 
-				buttons["w"].StartUpdateSet(Jump || Up);
-				buttons["up"].StartUpdateSet(Jump || Up);
+				buttons["w"].StartUpdateSet(Up);
+				buttons["up"].StartUpdateSet(Up);
 
-				buttons["s"].StartUpdateSet(Swap || Down);
-				buttons["down"].StartUpdateSet(Swap || Down);
+				buttons["s"].StartUpdateSet(Down);
+				buttons["down"].StartUpdateSet(Down);
 
 				buttons["a"].StartUpdateSet(Left);
 				buttons["left"].StartUpdateSet(Left);

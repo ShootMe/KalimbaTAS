@@ -25,6 +25,7 @@ namespace KalimbaTAS {
 		public static bool isRunning = false;
 		public static string TASOutput;
 		public static bool showOutput = true;
+		private static bool lastBack = false;
 
 		static TAS() {
 			NGUIDebug.Log("");
@@ -71,7 +72,42 @@ namespace KalimbaTAS {
 						DisableRun();
 					}
 				}
+
+				UpdateText();
 			} else {
+				if (controller is SteamKeyboardController) {
+					TotemGamePadPlugin.UpdateGamepads();
+					TotemGamePadPlugin.GamepadState gamepad;
+					TotemGamePadPlugin.GetGamepadState(0, out gamepad);
+
+					TASInput input = new TASInput();
+					input.Frames = 1;
+					input.Line = 1;
+					input.Player = 1;
+					bool backPressed = gamepad.IsBPressed || gamepad.IsMenuPressed;
+					if (backPressed && !lastBack) {
+						lastBack = true;
+						input.Back = true;
+					} else if (!backPressed) {
+						lastBack = false;
+					}
+
+					input.Up = gamepad.IsDPadUpPressed;
+					input.Down = gamepad.IsDPadDownPressed;
+					input.Swap = gamepad.IsXPressed;
+
+					if (p1.gameController == controller) {
+						input.Jump = gamepad.IsLeftShoulderPressed || gamepad.IsAPressed;
+						input.Left = gamepad.IsDPadLeftPressed || gamepad.LeftThumbstickX <= -0.5f;
+						input.Right = gamepad.IsDPadRightPressed || gamepad.LeftThumbstickX >= 0.5f;
+					} else {
+						input.Jump = gamepad.IsRightShoulderPressed;
+						input.Left = gamepad.RightThumbstickX <= -0.5f;
+						input.Right = gamepad.RightThumbstickX >= 0.5f;
+					}
+
+					input.UpdateInput(controller);
+				}
 				isRunning = false;
 				TASOutput = null;
 			}
@@ -248,22 +284,16 @@ namespace KalimbaTAS {
 		private static bool HasFlag(TASState state, TASState flag) {
 			return (state & flag) == flag;
 		}
-		public static void DrawText() {
-			if (style == null) {
-				style = GUI.skin.GetStyle("TopBar");
-				style.fontStyle = FontStyle.Bold;
-				style.font = TotemUISettings.Instance.defaultUIFont;
-				style.alignment = TextAnchor.UpperLeft;
-				style.normal.textColor = Color.white;
-			}
-			if (HasFlag(tasState, TASState.Enable)) {
-				style.fontSize = (int)Mathf.Round(22f * AspectUtility.screenWidth / 1920f);
-				string msg = player1.ToString() + (player2.CurrentFrame != 0 ? " " + player2.ToString() : "");
-				string next = player1.NextInput() + (player2.CurrentFrame != 0 ? " " + player2.NextInput() : "");
-				if (next.Trim() != string.Empty) {
-					msg += " " + next;
-				}
+		public static void UpdateText() {
+			if (!HasFlag(tasState, TASState.Enable)) { return; }
 
+			string msg = player1.ToString() + (player2.CurrentFrame != 0 ? " " + player2.ToString() : "");
+			string next = player1.NextInput() + (player2.CurrentFrame != 0 ? " " + player2.NextInput() : "");
+			if (next.Trim() != string.Empty) {
+				msg += " " + next;
+			}
+
+			try {
 				GameManager gm = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager;
 				bool t1CJ = gm.controllers[0].controlledPlayers[0].CanJump();
 				bool t2CJ = gm.controllers[0].controlledPlayers[1].CanJump();
@@ -280,10 +310,23 @@ namespace KalimbaTAS {
 				} else {
 					msg += "\r\nT1: (" + p1V.x.ToString("0.00") + ", " + p1V.y.ToString("0.00") + ", " + (t1CJ ? "T" : "F") + ") T2: (" + p2V.x.ToString("0.00") + ", " + p2V.y.ToString("0.00") + ", " + (t2CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
 				}
-				TASOutput = msg;
+			} catch {
+			}
+			TASOutput = msg;
+		}
+		public static void DrawText() {
+			if (style == null) {
+				style = GUI.skin.GetStyle("TopBar");
+				style.fontStyle = FontStyle.Bold;
+				style.font = TotemUISettings.Instance.defaultUIFont;
+				style.alignment = TextAnchor.UpperLeft;
+				style.normal.textColor = Color.white;
+			}
+			if (HasFlag(tasState, TASState.Enable)) {
+				style.fontSize = (int)Mathf.Round(22f * AspectUtility.screenWidth / 1920f);
 
 				if (showOutput) {
-					GUI.Label(new Rect(5f, 2f, AspectUtility.screenWidth - 5f, 60f), msg, style);
+					GUI.Label(new Rect(5f, 2f, AspectUtility.screenWidth - 5f, 60f), TASOutput, style);
 				}
 			}
 		}
