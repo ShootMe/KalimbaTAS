@@ -1,132 +1,164 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 namespace KalimbaTAS {
 	[Flags]
 	public enum Actions {
 		None,
-		L = 1,
-		R = 2,
-		J = 4,
-		S = 8,
-		B = 16,
-		U = 32,
-		D = 64
+		Left = 1,
+		Right = 2,
+		Jump = 4,
+		Swap = 8,
+		Back = 16,
+		Up = 32,
+		Down = 64
 	}
-	public class TASInput {
+	public class InputRecord {
 		public int Frames { get; set; }
 		public int Player { get; set; }
-		public bool Jump { get; set; }
-		public bool Swap { get; set; }
-		public bool Left { get; set; }
-		public bool Right { get; set; }
-		public bool Up { get; set; }
-		public bool Down { get; set; }
-		public bool Back { get; set; }
 		public int Line { get; set; }
 		public Actions Actions { get; set; }
 
-		public TASInput() { }
-		public TASInput(int frames, int player, int inputCount, BaseController controller) {
+		public InputRecord() { }
+		public InputRecord(int frames, int player, int inputCount, BaseController controller) {
 			Player = player;
 			Frames = frames;
-			Jump = controller.aButton.next || (controller is SteamKeyboardController ? ((Dictionary<string, EdgeDetectingBoolWrapper>)((SteamKeyboardController)controller).ButtonDict())["enter"].next : false);
-			Swap = controller.xButton.next;
-			Left = controller.dpadLeftButton.next || controller.leftStickX <= -0.5f;
-			Right = controller.dpadRightButton.next || controller.leftStickX >= 0.5f;
-			Back = controller.bButton.next || controller.startButton.next;
-			Up = controller.dpadUpButton.next || controller.leftStickY >= 0.5f;
-			Down = controller.dpadDownButton.next || controller.leftStickY <= -0.5f;
+			Actions |= (controller.aButton.next || (controller is SteamKeyboardController ? ((Dictionary<string, EdgeDetectingBoolWrapper>)((SteamKeyboardController)controller).ButtonDict())["enter"].next : false)) ? Actions.Jump : Actions.None;
+			Actions |= controller.xButton.next ? Actions.Swap : Actions.None;
+			Actions |= controller.dpadLeftButton.next || controller.leftStickX <= -0.5f ? Actions.Left : Actions.None;
+			Actions |= controller.dpadRightButton.next || controller.leftStickX >= 0.5f ? Actions.Right : Actions.None;
+			Actions |= controller.bButton.next || controller.startButton.next ? Actions.Back : Actions.None;
+			Actions |= controller.dpadUpButton.next || controller.leftStickY >= 0.5f ? Actions.Up : Actions.None;
+			Actions |= controller.dpadDownButton.next || controller.leftStickY <= -0.5f ? Actions.Down : Actions.None;
 			Line = inputCount;
-			UpdateActions();
 		}
-		public TASInput(string line, int lineNum) {
-			string[] parameters = line.Split('|', ',');
-
-			int frames = 0;
-			int.TryParse(parameters[0], out frames);
-			Frames = frames;
+		public InputRecord(string line, int lineNum) {
 			Line = lineNum;
 			Player = 1;
+			int index = 0;
+			Frames = ReadFrames(line, ref index);
+			if (Frames == 0) { return; }
 
-			for (int i = 1; i < parameters.Length; i++) {
-				switch (parameters[i].Trim().ToUpper()) {
-					case "L": Left = true; break;
-					case "R": Right = true; break;
-					case "J": Jump = true; break;
-					case "S": Swap = true; break;
-					case "X": Jump = true; Swap = true; break;
-					case "B": Back = true; break;
-					case "U": Up = true; break;
-					case "D": Down = true; break;
-					case "1": Player = 1; break;
-					case "2": Player = 2; break;
+			while (index < line.Length) {
+				char c = line[index];
+
+				switch (char.ToUpper(c)) {
+					case 'L': Actions ^= Actions.Left; break;
+					case 'R': Actions ^= Actions.Right; break;
+					case 'U': Actions ^= Actions.Up; break;
+					case 'D': Actions ^= Actions.Down; break;
+					case 'J': Actions ^= Actions.Jump; break;
+					case 'S': Actions ^= Actions.Swap; break;
+					case 'X': Actions ^= Actions.Swap | Actions.Jump; break;
+					case 'B': Actions ^= Actions.Back; break;
+					case '1': Player = 1; break;
+					case '2': Player = 2; break;
 				}
+
+				index++;
 			}
-			UpdateActions();
 		}
-		public void UpdateActions() {
-			Actions = (Left ? Actions.L : Actions.None) | (Right ? Actions.R : Actions.None) | (Jump ? Actions.J : Actions.None)
-				| (Swap ? Actions.S : Actions.None) | (Back ? Actions.B : Actions.None) | (Up ? Actions.U : Actions.None)
-				| (Down ? Actions.D : Actions.None);
+		private int ReadFrames(string line, ref int start) {
+			bool foundFrames = false;
+			int frames = 0;
+
+			while (start < line.Length) {
+				char c = line[start];
+
+				if (!foundFrames) {
+					if (char.IsDigit(c)) {
+						foundFrames = true;
+						frames = c ^ 0x30;
+					} else if (c != ' ') {
+						return frames;
+					}
+				} else if (char.IsDigit(c)) {
+					if (frames < 9999) {
+						frames = frames * 10 + (c ^ 0x30);
+					} else {
+						frames = 9999;
+					}
+				} else if (c != ' ') {
+					return frames;
+				}
+
+				start++;
+			}
+
+			return frames;
+		}
+		public bool HasActions(Actions actions) {
+			return (Actions & actions) != 0;
 		}
 		public void UpdateInput(BaseController controller) {
 			controller.StartUpdate();
 
-			controller.dpadLeftButton.StartUpdateSet(Left);
-			controller.dpadRightButton.StartUpdateSet(Right);
-			controller.aButton.StartUpdateSet(Jump);
-			controller.xButton.StartUpdateSet(Swap);
-			controller.bButton.StartUpdateSet(Back);
-			controller.startButton.StartUpdateSet(Back);
-			controller.dpadDownButton.StartUpdateSet(Down);
-			controller.dpadUpButton.StartUpdateSet(Up);
+			controller.dpadLeftButton.StartUpdateSet(HasActions(Actions.Left));
+			controller.dpadRightButton.StartUpdateSet(HasActions(Actions.Right));
+			controller.aButton.StartUpdateSet(HasActions(Actions.Jump));
+			controller.xButton.StartUpdateSet(HasActions(Actions.Swap));
+			controller.bButton.StartUpdateSet(HasActions(Actions.Back));
+			controller.startButton.StartUpdateSet(HasActions(Actions.Back));
+			controller.dpadDownButton.StartUpdateSet(HasActions(Actions.Down));
+			controller.dpadUpButton.StartUpdateSet(HasActions(Actions.Up));
 			controller.leftStickX = 0;
 			controller.leftStickY = 0;
 			if (controller is SteamKeyboardController) {
 				Dictionary<string, EdgeDetectingBoolWrapper> buttons = (Dictionary<string, EdgeDetectingBoolWrapper>)((SteamKeyboardController)controller).ButtonDict();
 
-				buttons["space"].StartUpdateSet(Jump);
-				buttons["enter"].StartUpdateSet(Jump);
-				buttons["jump"].StartUpdateSet(Jump);
+				buttons["space"].StartUpdateSet(HasActions(Actions.Jump));
+				buttons["enter"].StartUpdateSet(HasActions(Actions.Jump));
+				buttons["jump"].StartUpdateSet(HasActions(Actions.Jump));
 
-				buttons["w"].StartUpdateSet(Up);
-				buttons["up"].StartUpdateSet(Up);
+				buttons["w"].StartUpdateSet(HasActions(Actions.Up));
+				buttons["up"].StartUpdateSet(HasActions(Actions.Up));
 
-				buttons["s"].StartUpdateSet(Down);
-				buttons["down"].StartUpdateSet(Down);
+				buttons["s"].StartUpdateSet(HasActions(Actions.Down));
+				buttons["down"].StartUpdateSet(HasActions(Actions.Down));
 
-				buttons["a"].StartUpdateSet(Left);
-				buttons["left"].StartUpdateSet(Left);
+				buttons["a"].StartUpdateSet(HasActions(Actions.Left));
+				buttons["left"].StartUpdateSet(HasActions(Actions.Left));
 
-				buttons["d"].StartUpdateSet(Right);
-				buttons["right"].StartUpdateSet(Right);
+				buttons["d"].StartUpdateSet(HasActions(Actions.Right));
+				buttons["right"].StartUpdateSet(HasActions(Actions.Right));
 
-				buttons["lShift"].StartUpdateSet(Swap);
-				buttons["rShift"].StartUpdateSet(Swap);
-				buttons["lCtrl"].StartUpdateSet(Swap);
-				buttons["rCtrl"].StartUpdateSet(Swap);
-				buttons["swap"].StartUpdateSet(Swap);
+				buttons["lShift"].StartUpdateSet(HasActions(Actions.Swap));
+				buttons["rShift"].StartUpdateSet(HasActions(Actions.Swap));
+				buttons["lCtrl"].StartUpdateSet(HasActions(Actions.Swap));
+				buttons["rCtrl"].StartUpdateSet(HasActions(Actions.Swap));
+				buttons["swap"].StartUpdateSet(HasActions(Actions.Swap));
 
-				buttons["esc"].StartUpdateSet(Back);
-				buttons["cancel"].StartUpdateSet(Back);
+				buttons["esc"].StartUpdateSet(HasActions(Actions.Back));
+				buttons["cancel"].StartUpdateSet(HasActions(Actions.Back));
 			}
 		}
-		public static bool operator ==(TASInput one, TASInput two) {
-			if ((object)one == null && (object)two != null) {
+		public string ActionsToString() {
+			StringBuilder sb = new StringBuilder();
+			if (HasActions(Actions.Left)) { sb.Append(",L"); }
+			if (HasActions(Actions.Right)) { sb.Append(",R"); }
+			if (HasActions(Actions.Up)) { sb.Append(",U"); }
+			if (HasActions(Actions.Down)) { sb.Append(",D"); }
+			if (HasActions(Actions.Jump)) { sb.Append(",J"); }
+			if (HasActions(Actions.Swap)) { sb.Append(",S"); }
+			if (HasActions(Actions.Back)) { sb.Append(",B"); }
+			return sb.ToString();
+		}
+		public static bool operator ==(InputRecord one, InputRecord two) {
+			bool oneNull = (object)one == null;
+			bool twoNull = (object)two == null;
+			if (oneNull != twoNull) {
 				return false;
-			} else if ((object)one != null && (object)two == null) {
-				return false;
-			} else if ((object)one == null && (object)two == null) {
+			} else if (oneNull && twoNull) {
 				return true;
 			}
 			return one.Player == two.Player && one.Actions == two.Actions;
 		}
-		public static bool operator !=(TASInput one, TASInput two) {
-			if ((object)one == null && (object)two != null) {
+		public static bool operator !=(InputRecord one, InputRecord two) {
+			bool oneNull = (object)one == null;
+			bool twoNull = (object)two == null;
+			if (oneNull != twoNull) {
 				return true;
-			} else if ((object)one != null && (object)two == null) {
-				return true;
-			} else if ((object)one == null && (object)two == null) {
+			} else if (oneNull && twoNull) {
 				return false;
 			}
 			return one.Player != two.Player || one.Actions != two.Actions;
@@ -135,16 +167,16 @@ namespace KalimbaTAS {
 			return ToString(false);
 		}
 		public string ToString(bool singlePlayer) {
-			return Frames.ToString().PadLeft(3, ' ') + (Actions != Actions.None ? "," + Actions.ToString().Replace(" ", "") : "") + (singlePlayer ? "" : "," + Player.ToString());
+			return Frames.ToString().PadLeft(3, ' ') + ActionsToString() + (singlePlayer ? "" : "," + Player.ToString());
 		}
 		public string ToStringDisplay() {
 			return "P" + Player.ToString() + "-L" + Line.ToString() + "(" + Frames.ToString() + (Actions != Actions.None ? "," + Actions.ToString().Replace(" ", "") : "") + ")";
 		}
 		public override bool Equals(object obj) {
-			return base.Equals(obj);
+			return obj is InputRecord && ((InputRecord)obj) == this;
 		}
 		public override int GetHashCode() {
-			return Frames;
+			return Frames ^ (int)Actions;
 		}
 	}
 }
