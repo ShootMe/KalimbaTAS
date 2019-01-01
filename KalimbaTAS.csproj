@@ -54,8 +54,8 @@
   <ItemGroup>
     <Compile Include="TAS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TASInput.cs" />
-    <Compile Include="TASPlayer.cs" />
+    <Compile Include="InputRecord.cs" />
+    <Compile Include="InputController.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

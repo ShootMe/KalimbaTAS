@@ -15,8 +15,8 @@ namespace KalimbaTAS {
 	public class TAS {
 		private static TASState tasStateNext, tasState;
 		private static string filePath = "Kalimba.tas";
-		private static TASPlayer player1 = new TASPlayer(1, filePath);
-		private static TASPlayer player2 = new TASPlayer(2, filePath);
+		private static InputController player1 = new InputController(1, filePath);
+		private static InputController player2 = new InputController(2, filePath);
 		public static float deltaTime = 0.016666667f, timeScale = 1f;
 		private static float triggerThreshholdRelease = 0.1f, triggerThreshholdPressed = 0.7f;
 		public static int frameRate = 0;
@@ -25,7 +25,8 @@ namespace KalimbaTAS {
 		public static bool isRunning = false;
 		public static string TASOutput;
 		public static bool showOutput = true;
-		private static bool lastBack = false;
+		private static bool lastBack = false, shouldUpdateInfo;
+		private static Vector2 lastPos1, lastPos2, lastPos3, lastPos4;
 
 		static TAS() {
 			NGUIDebug.Log("");
@@ -72,38 +73,36 @@ namespace KalimbaTAS {
 						DisableRun();
 					}
 				}
-
-				UpdateText();
 			} else {
 				if (controller is SteamKeyboardController) {
 					TotemGamePadPlugin.UpdateGamepads();
 					TotemGamePadPlugin.GamepadState gamepad;
 					TotemGamePadPlugin.GetGamepadState(0, out gamepad);
 
-					TASInput input = new TASInput();
+					InputRecord input = new InputRecord();
 					input.Frames = 1;
 					input.Line = 1;
 					input.Player = 1;
 					bool backPressed = gamepad.IsBPressed || gamepad.IsMenuPressed;
 					if (backPressed && !lastBack) {
 						lastBack = true;
-						input.Back = true;
+						input.Actions |= Actions.Back;
 					} else if (!backPressed) {
 						lastBack = false;
 					}
 
-					input.Up = gamepad.IsDPadUpPressed;
-					input.Down = gamepad.IsDPadDownPressed;
-					input.Swap = gamepad.IsXPressed;
+					input.Actions |= gamepad.IsDPadUpPressed ? Actions.Up : Actions.None;
+					input.Actions |= gamepad.IsDPadDownPressed ? Actions.Down : Actions.None;
+					input.Actions |= gamepad.IsXPressed ? Actions.Swap : Actions.None;
 
 					if (p1.gameController == controller) {
-						input.Jump = gamepad.IsLeftShoulderPressed || gamepad.IsAPressed;
-						input.Left = gamepad.IsDPadLeftPressed || gamepad.LeftThumbstickX <= -0.5f;
-						input.Right = gamepad.IsDPadRightPressed || gamepad.LeftThumbstickX >= 0.5f;
+						input.Actions |= (gamepad.IsLeftShoulderPressed || gamepad.IsAPressed) ? Actions.Jump : Actions.None;
+						input.Actions |= (gamepad.IsDPadLeftPressed || gamepad.LeftThumbstickX <= -0.5f) ? Actions.Left : Actions.None;
+						input.Actions |= (gamepad.IsDPadRightPressed || gamepad.LeftThumbstickX >= 0.5f) ? Actions.Right : Actions.None;
 					} else {
-						input.Jump = gamepad.IsRightShoulderPressed;
-						input.Left = gamepad.RightThumbstickX <= -0.5f;
-						input.Right = gamepad.RightThumbstickX >= 0.5f;
+						input.Actions |= gamepad.IsRightShoulderPressed ? Actions.Jump : Actions.None;
+						input.Actions |= gamepad.RightThumbstickX <= -0.5f ? Actions.Left : Actions.None;
+						input.Actions |= gamepad.RightThumbstickX >= 0.5f ? Actions.Right : Actions.None;
 					}
 
 					input.UpdateInput(controller);
@@ -111,43 +110,68 @@ namespace KalimbaTAS {
 				isRunning = false;
 				TASOutput = null;
 			}
+
+			try {
+				if (GlobalGameManager.Instance != null && GlobalGameManager.Instance.currentSession != null && GlobalGameManager.Instance.currentSession.activeSessionHolder != null) {
+					GameManager gm = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager;
+					Controller c = gm.controllers[0];
+					lastPos1 = c.controlledPlayers[0].transform.position;
+					lastPos2 = c.controlledPlayers[1].transform.position;
+					if (gm.controllers.Length > 1) {
+						c = gm.controllers[1];
+						lastPos3 = c.controlledPlayers[0].transform.position;
+						lastPos4 = c.controlledPlayers[1].transform.position;
+					}
+				} else {
+					lastPos1 = Vector2.zero;
+					lastPos2 = Vector2.zero;
+					lastPos3 = Vector2.zero;
+					lastPos4 = Vector2.zero;
+				}
+			} catch {
+			}
+			shouldUpdateInfo = true;
 		}
 		private static void HandleFrameRates(TotemGamePadPlugin.GamepadState gamepad) {
 			if (HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.FrameStep) && !HasFlag(tasState, TASState.Record)) {
 				if (gamepad.RightThumbstickX <= -0.9) {
-					SetFrameRate(20);
+					SetFrameRate(6);
 				} else if (gamepad.RightThumbstickX <= -0.8) {
-					SetFrameRate(25);
+					SetFrameRate(12);
 				} else if (gamepad.RightThumbstickX <= -0.7) {
-					SetFrameRate(30);
+					SetFrameRate(18);
 				} else if (gamepad.RightThumbstickX <= -0.6) {
-					SetFrameRate(35);
+					SetFrameRate(24);
 				} else if (gamepad.RightThumbstickX <= -0.5) {
-					SetFrameRate(40);
+					SetFrameRate(30);
 				} else if (gamepad.RightThumbstickX <= -0.4) {
-					SetFrameRate(45);
+					SetFrameRate(36);
 				} else if (gamepad.RightThumbstickX <= -0.3) {
-					SetFrameRate(50);
+					SetFrameRate(42);
 				} else if (gamepad.RightThumbstickX <= -0.2) {
-					SetFrameRate(55);
-				} else if (gamepad.RightThumbstickX <= 0.2) {
+					SetFrameRate(48);
+				} else if (gamepad.RightThumbstickX <= -0.1) {
+					SetFrameRate(54);
+				} else if (gamepad.RightThumbstickX <= 0.1) {
 					SetFrameRate();
-				} else if (gamepad.RightThumbstickX <= 0.3) {
-					SetFrameRate(75);
-				} else if (gamepad.RightThumbstickX <= 0.4) {
-					SetFrameRate(90);
-				} else if (gamepad.RightThumbstickX <= 0.5) {
-					SetFrameRate(105);
-				} else if (gamepad.RightThumbstickX <= 0.6) {
+				} else if (gamepad.RightThumbstickX <= 0.2) {
 					SetFrameRate(120);
-				} else if (gamepad.RightThumbstickX <= 0.7) {
-					SetFrameRate(135);
-				} else if (gamepad.RightThumbstickX <= 0.8) {
+				} else if (gamepad.RightThumbstickX <= 0.3) {
 					SetFrameRate(150);
-				} else if (gamepad.RightThumbstickX <= 0.9) {
-					SetFrameRate(165);
-				} else {
+				} else if (gamepad.RightThumbstickX <= 0.4) {
 					SetFrameRate(180);
+				} else if (gamepad.RightThumbstickX <= 0.5) {
+					SetFrameRate(210);
+				} else if (gamepad.RightThumbstickX <= 0.6) {
+					SetFrameRate(240);
+				} else if (gamepad.RightThumbstickX <= 0.7) {
+					SetFrameRate(270);
+				} else if (gamepad.RightThumbstickX <= 0.8) {
+					SetFrameRate(300);
+				} else if (gamepad.RightThumbstickX <= 0.9) {
+					SetFrameRate(330);
+				} else {
+					SetFrameRate(360);
 				}
 			} else {
 				SetFrameRate();
@@ -222,20 +246,22 @@ namespace KalimbaTAS {
 			}
 
 			if (gamepad.RightTrigger >= triggerThreshholdPressed && gamepad.LeftTrigger >= triggerThreshholdPressed) {
-				if (!HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.Record) && gamepad.IsRightThumbstickPressed) {
-					tasStateNext |= TASState.Enable;
-				} else if (gamepad.IsDPadDownPressed) {
-					DisableRun();
-				} else if (!HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.Record) && gamepad.IsLeftThumbstickPressed) {
-					tasStateNext |= TASState.Record;
-				} else if (!HasFlag(tasState, TASState.Record) && !HasFlag(tasState, TASState.Enable) && gamepad.IsDPadLeftPressed) {
+				if (!HasFlag(tasState, TASState.Record) && !HasFlag(tasState, TASState.Enable) && gamepad.IsDPadLeftPressed) {
 					tasStateNext |= TASState.CheckpointPrevious;
 				} else if (!HasFlag(tasState, TASState.Record) && !HasFlag(tasState, TASState.Enable) && gamepad.IsDPadRightPressed) {
 					tasStateNext |= TASState.CheckpointNext;
+				} else if (!HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.Record) && gamepad.IsLeftThumbstickPressed) {
+					tasStateNext |= TASState.Record;
 				}
 			}
 
-			if (gamepad.RightTrigger <= triggerThreshholdRelease && gamepad.LeftTrigger <= triggerThreshholdRelease) {
+			if (!HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.Record) && gamepad.IsRightThumbstickPressed) {
+				tasStateNext |= TASState.Enable;
+			} else if ((HasFlag(tasState, TASState.Enable) || !HasFlag(tasState, TASState.Record)) && (gamepad.IsRightThumbstickPressed || gamepad.IsLeftThumbstickPressed)) {
+				DisableRun();
+			}
+
+			if (!gamepad.IsRightThumbstickPressed && !gamepad.IsLeftThumbstickPressed) {
 				if (HasFlag(tasStateNext, TASState.Enable)) {
 					EnableRun();
 				} else if (HasFlag(tasStateNext, TASState.Record)) {
@@ -294,24 +320,32 @@ namespace KalimbaTAS {
 			}
 
 			try {
-				GameManager gm = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager;
-				bool t1CJ = gm.controllers[0].controlledPlayers[0].CanJump();
-				bool t2CJ = gm.controllers[0].controlledPlayers[1].CanJump();
-				Vector3 p1V = gm.controllers[0].controlledPlayers[0].GetVelocity();
-				Vector3 p2V = gm.controllers[0].controlledPlayers[1].GetVelocity();
-				bool loading = GlobalGameManager.Instance.levelIsLoading;
-				if (gm.controllers.Length > 1) {
-					Controller c2 = gm.controllers[1];
-					bool t3CJ = c2.controlledPlayers[0].CanJump();
-					bool t4CJ = c2.controlledPlayers[1].CanJump();
-					Vector3 p3V = c2.controlledPlayers[0].GetVelocity();
-					Vector3 p4V = c2.controlledPlayers[1].GetVelocity();
-					msg += "\r\nT1: (" + p1V.x.ToString("0.00") + ", " + p1V.y.ToString("0.00") + ", " + (t1CJ ? "T" : "F") + ") T2: (" + p2V.x.ToString("0.00") + ", " + p2V.y.ToString("0.00") + ", " + (t2CJ ? "T" : "F") + ") T3: (" + p3V.x.ToString("0.00") + ", " + p3V.y.ToString("0.00") + ", " + (t3CJ ? "T" : "F") + ") T4: (" + p4V.x.ToString("0.00") + ", " + p4V.y.ToString("0.00") + ", " + (t4CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
-				} else {
-					msg += "\r\nT1: (" + p1V.x.ToString("0.00") + ", " + p1V.y.ToString("0.00") + ", " + (t1CJ ? "T" : "F") + ") T2: (" + p2V.x.ToString("0.00") + ", " + p2V.y.ToString("0.00") + ", " + (t2CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
+				if (GlobalGameManager.Instance != null && GlobalGameManager.Instance.currentSession != null && GlobalGameManager.Instance.currentSession.activeSessionHolder != null) {
+					GameManager gm = GlobalGameManager.Instance.currentSession.activeSessionHolder.gameManager;
+					Controller c = gm.controllers[0];
+					bool t1CJ = c.controlledPlayers[0].CanJump();
+					bool t2CJ = c.controlledPlayers[1].CanJump();
+					Vector2 pos = c.controlledPlayers[0].transform.position;
+					Vector2 p1V = (pos - lastPos1) * 60;
+					pos = c.controlledPlayers[1].transform.position;
+					Vector2 p2V = (pos - lastPos2) * 60;
+					bool loading = GlobalGameManager.Instance.levelIsLoading;
+					if (gm.controllers.Length > 1) {
+						c = gm.controllers[1];
+						bool t3CJ = c.controlledPlayers[0].CanJump();
+						bool t4CJ = c.controlledPlayers[1].CanJump();
+						pos = c.controlledPlayers[0].transform.position;
+						Vector2 p3V = (pos - lastPos3) * 60;
+						pos = c.controlledPlayers[1].transform.position;
+						Vector2 p4V = (pos - lastPos4) * 60;
+						msg += "\r\nT1: (" + p1V.x.ToString("0.00") + ", " + p1V.y.ToString("0.00") + ", " + (t1CJ ? "T" : "F") + ") T2: (" + p2V.x.ToString("0.00") + ", " + p2V.y.ToString("0.00") + ", " + (t2CJ ? "T" : "F") + ") T3: (" + p3V.x.ToString("0.00") + ", " + p3V.y.ToString("0.00") + ", " + (t3CJ ? "T" : "F") + ") T4: (" + p4V.x.ToString("0.00") + ", " + p4V.y.ToString("0.00") + ", " + (t4CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
+					} else {
+						msg += "\r\nT1: (" + p1V.x.ToString("0.00") + ", " + p1V.y.ToString("0.00") + ", " + (t1CJ ? "T" : "F") + ") T2: (" + p2V.x.ToString("0.00") + ", " + p2V.y.ToString("0.00") + ", " + (t2CJ ? "T" : "F") + ")" + (loading ? " (Loading)" : "");
+					}
 				}
 			} catch {
 			}
+
 			TASOutput = msg;
 		}
 		public static void DrawText() {
@@ -324,6 +358,11 @@ namespace KalimbaTAS {
 			}
 			if (HasFlag(tasState, TASState.Enable)) {
 				style.fontSize = (int)Mathf.Round(22f * AspectUtility.screenWidth / 1920f);
+
+				if (shouldUpdateInfo) {
+					UpdateText();
+					shouldUpdateInfo = false;
+				}
 
 				if (showOutput) {
 					GUI.Label(new Rect(5f, 2f, AspectUtility.screenWidth - 5f, 60f), TASOutput, style);
