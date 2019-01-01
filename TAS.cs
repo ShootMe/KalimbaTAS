@@ -10,7 +10,8 @@ namespace KalimbaTAS {
 		Reload = 4,
 		FrameStep = 8,
 		CheckpointNext = 16,
-		CheckpointPrevious = 32
+		CheckpointPrevious = 32,
+		Disable = 64
 	}
 	public class TAS {
 		private static TASState tasStateNext, tasState;
@@ -232,6 +233,7 @@ namespace KalimbaTAS {
 			}
 		}
 		private static void DisableRun() {
+			tasStateNext &= ~TASState.Disable;
 			tasState &= ~TASState.Enable;
 			tasState &= ~TASState.FrameStep;
 			tasState &= ~TASState.Record;
@@ -258,7 +260,7 @@ namespace KalimbaTAS {
 			if (!HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.Record) && gamepad.IsRightThumbstickPressed) {
 				tasStateNext |= TASState.Enable;
 			} else if ((HasFlag(tasState, TASState.Enable) || !HasFlag(tasState, TASState.Record)) && (gamepad.IsRightThumbstickPressed || gamepad.IsLeftThumbstickPressed)) {
-				DisableRun();
+				tasStateNext |= TASState.Disable;
 			}
 
 			if (!gamepad.IsRightThumbstickPressed && !gamepad.IsLeftThumbstickPressed) {
@@ -266,6 +268,8 @@ namespace KalimbaTAS {
 					EnableRun();
 				} else if (HasFlag(tasStateNext, TASState.Record)) {
 					RecordRun();
+				} else if (HasFlag(tasStateNext, TASState.Disable)) {
+					DisableRun();
 				}
 			}
 		}
