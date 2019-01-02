@@ -135,42 +135,16 @@ namespace KalimbaTAS {
 		}
 		private static void HandleFrameRates(TotemGamePadPlugin.GamepadState gamepad) {
 			if (HasFlag(tasState, TASState.Enable) && !HasFlag(tasState, TASState.FrameStep) && !HasFlag(tasState, TASState.Record)) {
-				if (gamepad.RightThumbstickX <= -0.9) {
-					SetFrameRate(6);
-				} else if (gamepad.RightThumbstickX <= -0.8) {
-					SetFrameRate(12);
-				} else if (gamepad.RightThumbstickX <= -0.7) {
-					SetFrameRate(18);
-				} else if (gamepad.RightThumbstickX <= -0.6) {
-					SetFrameRate(24);
-				} else if (gamepad.RightThumbstickX <= -0.5) {
-					SetFrameRate(30);
-				} else if (gamepad.RightThumbstickX <= -0.4) {
-					SetFrameRate(36);
-				} else if (gamepad.RightThumbstickX <= -0.3) {
-					SetFrameRate(42);
-				} else if (gamepad.RightThumbstickX <= -0.2) {
-					SetFrameRate(48);
-				} else if (gamepad.RightThumbstickX <= -0.1) {
-					SetFrameRate(54);
-				} else if (gamepad.RightThumbstickX <= 0.1) {
+				if (gamepad.RightThumbstickX <= 0.5) {
 					SetFrameRate();
-				} else if (gamepad.RightThumbstickX <= 0.2) {
-					SetFrameRate(120);
-				} else if (gamepad.RightThumbstickX <= 0.3) {
-					SetFrameRate(150);
-				} else if (gamepad.RightThumbstickX <= 0.4) {
-					SetFrameRate(180);
-				} else if (gamepad.RightThumbstickX <= 0.5) {
-					SetFrameRate(210);
 				} else if (gamepad.RightThumbstickX <= 0.6) {
-					SetFrameRate(240);
+					SetFrameRate(120);
 				} else if (gamepad.RightThumbstickX <= 0.7) {
-					SetFrameRate(270);
+					SetFrameRate(180);
 				} else if (gamepad.RightThumbstickX <= 0.8) {
-					SetFrameRate(300);
+					SetFrameRate(240);
 				} else if (gamepad.RightThumbstickX <= 0.9) {
-					SetFrameRate(330);
+					SetFrameRate(300);
 				} else {
 					SetFrameRate(360);
 				}

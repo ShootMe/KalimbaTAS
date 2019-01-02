@@ -1,0 +1,150 @@
+#Intro
+   1,J
+ 320
+   1,J
+   1
+   1,J
+ 210
+   1,J
+   1
+   1,J
+   1
+   1,J
+   1
+   1,J
+   1
+   1,J
+   1
+   1,J
+  60
+   1,J
+   1
+   1,J
+   1
+   1,J
+   1
+   1,J
+   1
+   1,J
+   1
+   1,J
+  60
+   1,J
+   1
+   1,J
+   1
+   1,J
+   1
+   1,J
+  32
+
+#Demongo
+   1,J
+  98
+   1,J
+ 370,R
+
+Read DarkVoid\G01-Demongo.tas,3
+
+ 416,J
+   1
+   1,J
+ 316
+
+#KoolDoktor
+   1,J
+  98
+
+Read DarkVoid\G02-KoolDoktor.tas
+
+ 416,J
+   1
+   1,J
+ 335
+
+#Slim
+   1,J
+  98
+
+Read DarkVoid\G03-Slim.tas
+
+ 416,J
+   1
+   1,J
+ 393
+
+#SoSuMi
+   1,J
+  98
+
+Read DarkVoid\G04-SoSuMi.tas
+
+ 416,J
+   1
+   1,J
+ 316
+
+#Smokingref
+   1,J
+  98
+
+Read DarkVoid\G05-Smokingref.tas
+
+ 416,J
+   1
+   1,J
+ 316
+
+#Cyclops
+   1,J
+  98
+
+Read DarkVoid\G06-Cyclops.tas
+
+ 416,J
+   1
+   1,J
+ 393
+
+#JusticeBeaver
+   1,J
+  98
+
+Read DarkVoid\G07-JusticeBeaver.tas
+
+ 416,J
+   1
+   1,J
+ 311
+
+#Kuthulu
+   1,J
+  98
+
+Read DarkVoid\G08-Kuthulu.tas
+
+ 416,J
+   1
+   1,J
+ 348
+
+#Jamarly
+   1,J
+  98
+
+Read DarkVoid\G09-Jamarly.tas
+
+ 418,J
+   1
+   1,J
+ 369
+
+#Illuminator
+   1,J
+  98
+
+Read DarkVoid\G10-Illuminator.tas
+
+ 416,J
+   1
+   1,J
